@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Navigation from '@/components/navigation';
+import TopNavigation from '@/components/top-navigation';
 
 export default function AuthenticatedLayout({
   children,
@@ -47,14 +47,12 @@ export default function AuthenticatedLayout({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navigation />
-      <div className="md:pl-64">
-        <main className="py-6">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-            {children}
-          </div>
-        </main>
-      </div>
+      <TopNavigation />
+      <main className="py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {children}
+        </div>
+      </main>
     </div>
   );
 }
