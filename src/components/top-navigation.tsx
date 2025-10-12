@@ -99,7 +99,7 @@ export default function TopNavigation() {
   const router = useRouter();
 
   useEffect(() => {
-    const loadUser = async () => {
+    const loadUser = () => {
       try {
         const token = localStorage.getItem('token');
         if (!token) {
@@ -107,19 +107,18 @@ export default function TopNavigation() {
           return;
         }
 
-        const response = await fetch('/api/auth/verify', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (response.ok) {
-          const userData = await response.json();
-          setUser(userData.user);
-        } else {
+        // Verify token is valid (not expired)
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const currentTime = Math.floor(Date.now() / 1000);
+        
+        if (payload.exp < currentTime) {
           localStorage.removeItem('token');
           router.push('/login');
+          return;
         }
+
+        // Set user from token payload
+        setUser(payload);
       } catch (error) {
         console.error('Error loading user:', error);
         localStorage.removeItem('token');
