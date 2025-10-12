@@ -1,309 +1,305 @@
-# ProjectHub - Comprehensive Project Management System
+# 🚀 PMO Project Management System
 
-A full-stack project management application designed specifically for electrical and IT projects, built with Next.js 15, PostgreSQL, and Prisma.
+[![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-blue)](https://www.postgresql.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-5-2D3748)](https://www.prisma.io/)
+[![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3-38B2AC)](https://tailwindcss.com/)
 
-## 🚀 Features
+A comprehensive Project Management System designed specifically for electrical and IT projects, featuring role-based access control, real-time collaboration, and advanced project tracking capabilities.
 
-### Core Modules
-- **Dashboard** - Real-time project analytics and KPIs
-- **Project Management** - Complete project lifecycle management
-- **Task Management** - Task assignment, dependencies, and progress tracking
-- **Resource Management** - Manpower, equipment, and material tracking
-- **Budget & Financials** - Cost estimation and actual spending tracking
-- **Risk & Issue Tracking** - Risk identification, mitigation, and resolution
-- **Document Management** - File uploads and document organization
-- **Activity Logging** - Comprehensive audit trail
-- **Notifications** - Real-time updates and reminders
+## 🎯 **Overview**
 
-### Role-Based Access Control
-- **System Admin** - Full system access
-- **Project Manager** - Project and team management
-- **Field/Site Engineer** - Task execution and reporting
-- **IT Developer/Technical Team** - Technical implementation
-- **Client/Stakeholder** - View-only access
+PMO (Project Management Office) Hub is a modern, full-stack project management application built with Next.js 15, featuring:
 
-### Technical Features
-- JWT-based authentication
-- RESTful API with Next.js API routes
-- PostgreSQL database with Prisma ORM
-- Responsive UI with Tailwind CSS and shadcn/ui
-- Real-time updates with WebSocket support
-- File upload and management
-- Advanced filtering and search
-- Data visualization with charts
+- **Complete CRUD Operations** for Projects, Tasks, Resources, and Budgets
+- **Role-Based Access Control** with 3-tier permission system
+- **Real-time Dashboard** with analytics and reporting
+- **Document Management** system with file uploads
+- **Activity Logs** and comprehensive audit trail
+- **Responsive UI** with modern design principles
+- **Secure Authentication** with JWT tokens
+- **Project Filtering** and user-specific data access
 
-## 🛠 Tech Stack
+## 🏗️ **Tech Stack**
 
-- **Frontend**: Next.js 15 (App Router), React 19, TypeScript
-- **Backend**: Next.js API Routes, Prisma ORM
-- **Database**: PostgreSQL
-- **UI**: Tailwind CSS, shadcn/ui components
-- **Authentication**: JWT tokens with bcrypt password hashing
-- **Charts**: Recharts
-- **Icons**: Lucide React
-- **Forms**: React Hook Form with Zod validation
+### **Frontend & Backend**
+- **Next.js 15** - Full-stack React framework with App Router
+- **TypeScript** - Type-safe development
+- **TailwindCSS** - Utility-first CSS framework
+- **React** - Component-based UI library
 
-## 📋 Prerequisites
+### **Database & ORM**
+- **PostgreSQL 17** - Robust relational database
+- **Prisma** - Modern database toolkit and ORM
+- **Database**: `pmo_db` with `tbl_` prefix
 
+### **Authentication & Security**
+- **JWT (jose library)** - Secure token-based authentication
+- **bcryptjs** - Password hashing and security
+- **Role-Based Access Control** - Granular permission system
+
+### **UI Components**
+- **shadcn/ui** - Modern, accessible component library
+- **Lucide React** - Beautiful icon library
+- **Sonner** - Toast notifications
+- **Recharts** - Data visualization charts
+
+## 👥 **Role System**
+
+### **🔴 Admin Role**
+- Complete system access
+- User management and role assignment
+- System configuration and settings
+- Full project and task oversight
+- Budget and resource management
+- Activity logs and audit trail
+
+### **🟡 Project Manager Role**
+- Project creation and management
+- Team coordination and task assignment
+- Budget control and approval
+- Resource allocation
+- Progress monitoring
+- Document management
+
+### **🔵 Engineer/User Role**
+- Task execution and progress updates
+- Document access and uploads
+- Project information viewing (assigned projects only)
+- Activity log access
+
+## 🚀 **Quick Start**
+
+### **Prerequisites**
 - Node.js 18+ 
-- PostgreSQL 13+
+- PostgreSQL 17
 - npm or yarn
 
-## 🚀 Quick Start
+### **Installation**
 
-### 1. Clone and Install
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/Tahatra21/pmohub.git
+   cd pmohub
+   ```
 
-```bash
-git clone <repository-url>
-cd pmo
-npm install
-```
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-### 2. Environment Setup
+3. **Set up environment variables**
+   ```bash
+   cp env.example .env.local
+   ```
+   
+   Update `.env.local` with your database credentials:
+   ```
+   DATABASE_URL="postgresql://username:password@localhost:5432/pmo_db"
+   JWT_SECRET="your-secret-key"
+   ```
 
-Create a `.env.local` file in the root directory:
+4. **Set up PostgreSQL database**
+   ```bash
+   # Run the database setup script
+   chmod +x setup-database.sh
+   ./setup-database.sh
+   ```
 
-```env
-# Database
-DATABASE_URL="postgresql://username:password@localhost:5432/projecthub"
+5. **Run database migrations**
+   ```bash
+   npx prisma db push
+   npx prisma db seed
+   ```
 
-# JWT Secret (generate a strong secret)
-JWT_SECRET="your-super-secret-jwt-key-here"
+6. **Start the development server**
+   ```bash
+   npm run dev
+   ```
 
-# Next.js
-NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="your-nextauth-secret"
-```
+7. **Access the application**
+   Open [http://localhost:3000](http://localhost:3000)
 
-### 3. Database Setup
-
-```bash
-# Generate Prisma client
-npm run db:generate
-
-# Push database schema
-npm run db:push
-
-# Seed database with sample data
-npm run db:seed
-```
-
-### 4. Run Development Server
-
-```bash
-npm run dev
-```
-
-Visit `http://localhost:3000` to access the application.
-
-## 🔐 Default Login Credentials
+## 🔐 **Default Users**
 
 After seeding the database, you can login with:
 
 - **Admin**: `admin@projecthub.com` / `admin123`
-- **Manager**: `manager@projecthub.com` / `manager123`  
+- **Project Manager**: `manager@projecthub.com` / `manager123`  
 - **Engineer**: `engineer@projecthub.com` / `engineer123`
 
-## 📁 Project Structure
+## 📊 **Features**
 
-```
-src/
-├── app/
-│   ├── (authenticated)/          # Protected routes
-│   │   ├── dashboard/           # Dashboard page
-│   │   ├── projects/            # Project management
-│   │   ├── tasks/               # Task management
-│   │   ├── resources/           # Resource management
-│   │   ├── budget/              # Budget tracking
-│   │   ├── risks/               # Risk management
-│   │   ├── documents/           # Document management
-│   │   ├── users/               # User management
-│   │   └── settings/            # Application settings
-│   ├── api/                     # API routes
-│   │   ├── auth/                # Authentication endpoints
-│   │   ├── projects/            # Project CRUD operations
-│   │   ├── tasks/               # Task management
-│   │   ├── users/               # User management
-│   │   ├── resources/           # Resource management
-│   │   ├── budgets/             # Budget tracking
-│   │   ├── risks/               # Risk management
-│   │   ├── documents/           # Document management
-│   │   ├── activity-logs/       # Activity logging
-│   │   └── dashboard/           # Dashboard analytics
-│   ├── login/                   # Login page
-│   ├── layout.tsx               # Root layout
-│   └── page.tsx                 # Home page (redirects to login/dashboard)
-├── components/
-│   ├── ui/                      # shadcn/ui components
-│   └── navigation.tsx           # Main navigation component
-├── lib/
-│   ├── auth.ts                  # Authentication utilities
-│   ├── db.ts                    # Database connection
-│   ├── middleware.ts            # API middleware
-│   └── utils.ts                 # Utility functions
-└── types/
-    └── index.ts                 # TypeScript type definitions
-```
+### **Project Management**
+- Create and manage projects with different types
+- Project status tracking (Planning, In Progress, Review, Completed)
+- Priority levels and progress monitoring
+- Team assignment and collaboration
+- Timeline management with milestones
 
-## 🗄 Database Schema
+### **Task Management**
+- Task creation and assignment
+- Progress tracking with percentage completion
+- Task dependencies and relationships
+- Status workflow (TODO → In Progress → Review → Completed)
+- Priority management and deadline tracking
 
-The application uses a comprehensive PostgreSQL schema with the following main entities:
+### **Resource Management**
+- Person in Charge (PIC) allocation
+- Resource availability tracking
+- Resource allocation to projects and tasks
+- Skill and expertise management
 
-- **Users & Roles** - User management with role-based permissions
-- **Projects** - Project information, status, and metadata
-- **Tasks** - Task breakdown with dependencies and assignments
-- **Milestones** - Project milestone tracking
-- **Resources** - Resource allocation and management
-- **Budgets** - Financial planning and tracking
-- **Risks** - Risk identification and mitigation
-- **Documents** - File management and organization
-- **Activity Logs** - Audit trail and activity tracking
+### **Budget Management**
+- Budget planning and tracking
+- Actual vs estimated cost monitoring
+- Budget categories (Equipment, Labor, Materials, Other)
+- Currency formatting in Rupiah (IDR)
+- Budget approval workflows
 
-## 🔌 API Endpoints
+### **Document Management**
+- File upload and storage
+- Document categorization
+- Version control and access management
+- Download and sharing capabilities
 
-### Authentication
-- `POST /api/auth/login` - User login
+### **Dashboard & Analytics**
+- Real-time project overview
+- Progress visualization with charts
+- Budget utilization tracking
+- Deadline alerts and notifications
+- Performance metrics and KPIs
+
+### **Security & Permissions**
+- JWT-based authentication
+- Role-based access control
+- Granular permission system
+- Secure password hashing
+- Session management
+- Audit trail and activity logging
+
+## 🗃️ **Database Schema**
+
+The application uses a comprehensive database schema with the following key tables:
+
+- `tbl_users` - User management
+- `tbl_roles` - Role definitions and permissions
+- `tbl_projects` - Project data and metadata
+- `tbl_tasks` - Task management and tracking
+- `tbl_project_members` - Project-team relationships
+- `tbl_resources` - Resource management
+- `tbl_resource_allocations` - Resource assignments
+- `tbl_budgets` - Budget tracking and management
+- `tbl_budget_types` - Budget categories
+- `tbl_project_types` - Project type definitions
+- `tbl_milestones` - Project milestones
+- `tbl_attachments` - Document management
+- `tbl_activity_logs` - Comprehensive audit trail
+
+## 🔄 **API Endpoints**
+
+The application provides a comprehensive REST API:
+
+### **Authentication**
+- `POST /api/auth/login` - User authentication
 - `POST /api/auth/register` - User registration
 
-### Projects
+### **Projects**
 - `GET /api/projects` - List projects (with filtering)
-- `POST /api/projects` - Create project
+- `POST /api/projects` - Create new project
 - `GET /api/projects/[id]` - Get project details
 - `PUT /api/projects/[id]` - Update project
 - `DELETE /api/projects/[id]` - Delete project
 
-### Tasks
-- `GET /api/tasks` - List tasks
-- `POST /api/tasks` - Create task
+### **Tasks**
+- `GET /api/tasks` - List tasks (with filtering)
+- `POST /api/tasks` - Create new task
 - `GET /api/tasks/[id]` - Get task details
 - `PUT /api/tasks/[id]` - Update task
 - `DELETE /api/tasks/[id]` - Delete task
 
-### Users & Roles
-- `GET /api/users` - List users
-- `POST /api/users` - Create user
-- `PUT /api/users/[id]` - Update user
-- `DELETE /api/users/[id]` - Delete user
-- `PUT /api/users/[id]/change-password` - Change password
-- `GET /api/roles` - List roles
-- `POST /api/roles` - Create role
-
-### Resources
+### **Resources**
 - `GET /api/resources` - List resources
 - `POST /api/resources` - Create resource
 - `PUT /api/resources/[id]` - Update resource
 - `DELETE /api/resources/[id]` - Delete resource
 
-### Budget & Financials
+### **Budget**
 - `GET /api/budgets` - List budgets
 - `POST /api/budgets` - Create budget entry
+- `PUT /api/budgets/[id]` - Update budget
+- `DELETE /api/budgets/[id]` - Delete budget
 
-### Risk Management
-- `GET /api/risks` - List risks
-- `POST /api/risks` - Create risk
+### **Dashboard**
+- `GET /api/dashboard` - Dashboard analytics and metrics
 
-### Documents
-- `GET /api/documents` - List documents
-- `POST /api/documents` - Upload document
+## 🛠️ **Development**
 
-### Analytics
-- `GET /api/dashboard` - Dashboard statistics
-- `GET /api/activity-logs` - Activity log
-
-## 🔒 Security Features
-
-- JWT-based authentication with secure token handling
-- Password hashing with bcrypt
-- Role-based access control (RBAC)
-- API route protection with middleware
-- Input validation with Zod schemas
-- SQL injection prevention with Prisma ORM
-- XSS protection with React's built-in escaping
-
-## 📊 Dashboard Features
-
-- **Project Statistics** - Total, active, and completed projects
-- **Task Analytics** - Task completion rates and overdue tasks
-- **Budget Overview** - Estimated vs actual costs
-- **Risk Monitoring** - High-priority risk alerts
-- **Progress Tracking** - Visual progress indicators
-- **Recent Activity** - Latest project and task updates
-- **Charts & Graphs** - Interactive data visualization
-
-## 🚀 Deployment
-
-### Production Build
-
-```bash
-npm run build
-npm start
+### **Project Structure**
+```
+src/
+├── app/                    # Next.js App Router
+│   ├── (authenticated)/   # Protected routes
+│   ├── api/              # API routes
+│   └── login/            # Authentication pages
+├── components/           # Reusable components
+│   └── ui/              # shadcn/ui components
+├── lib/                 # Utility libraries
+├── hooks/               # Custom React hooks
+└── types/               # TypeScript type definitions
 ```
 
-### Environment Variables for Production
+### **Available Scripts**
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run db:push` - Push schema changes to database
+- `npm run db:seed` - Seed database with sample data
 
-```env
-# Database (use production PostgreSQL URL)
-DATABASE_URL="postgresql://username:password@your-db-host:5432/projecthub"
+## 🚀 **Deployment**
 
-# JWT Secret (use a strong, unique secret)
-JWT_SECRET="your-production-jwt-secret"
+### **Environment Setup**
+1. Set up PostgreSQL database
+2. Configure environment variables
+3. Run database migrations
+4. Seed initial data
+5. Build and deploy application
 
-# Next.js
-NEXTAUTH_URL="https://your-domain.com"
-NEXTAUTH_SECRET="your-production-nextauth-secret"
-```
+### **Production Considerations**
+- Use environment-specific database configurations
+- Set up proper backup strategies
+- Configure reverse proxy (nginx)
+- Enable HTTPS and security headers
+- Set up monitoring and logging
 
-### Database Migration for Production
+## 📈 **Performance Features**
 
-```bash
-# Generate and apply migrations
-npx prisma migrate deploy
+- **Optimized Database Queries** - Efficient Prisma queries
+- **Real-time Updates** - Immediate UI updates
+- **Responsive Design** - Mobile-first approach
+- **Caching Strategy** - Strategic data caching
+- **Lazy Loading** - Component-based lazy loading
+- **Pagination** - Efficient data pagination
 
-# Generate Prisma client
-npx prisma generate
-```
+## 🔒 **Security Features**
 
-## 🔧 Development Commands
+- **Authentication** - JWT token-based authentication
+- **Authorization** - Role-based access control
+- **Data Protection** - SQL injection and XSS protection
+- **Secure Headers** - Security headers implementation
+- **Password Security** - bcrypt password hashing
+- **Session Management** - Secure session handling
 
-```bash
-# Development server
-npm run dev
+## 📱 **Browser Support**
 
-# Database operations
-npm run db:push          # Push schema changes
-npm run db:generate      # Generate Prisma client
-npm run db:migrate       # Create and apply migrations
-npm run db:reset         # Reset database
-npm run db:seed          # Seed with sample data
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
 
-# Linting and formatting
-npm run lint             # Run ESLint
-```
-
-## 📈 Roadmap
-
-### Phase 1 (Current)
-- ✅ Core project management
-- ✅ Task management with dependencies
-- ✅ User management and RBAC
-- ✅ Dashboard and analytics
-- ✅ Document management
-
-### Phase 2 (Next)
-- 🔄 Advanced reporting and exports
-- 🔄 Mobile application
-- 🔄 Real-time notifications
-- 🔄 Integration with external tools
-- 🔄 Advanced workflow automation
-
-### Phase 3 (Future)
-- 📋 AI-powered project insights
-- 📋 Advanced resource optimization
-- 📋 Multi-tenant support
-- 📋 Advanced analytics and ML
-- 📋 Mobile app with offline support
-
-## 🤝 Contributing
+## 🤝 **Contributing**
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -311,17 +307,33 @@ npm run lint             # Run ESLint
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📝 License
+## 📄 **License**
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
+## 👥 **Team**
+
+- **Developer**: Jonathan Maharyuda
+- **Repository**: [Tahatra21/pmohub](https://github.com/Tahatra21/pmohub)
+
+## 🆘 **Support**
 
 For support and questions:
-- Create an issue in the repository
-- Check the documentation
-- Contact the development team
+- Create an issue in this repository
+- Check the troubleshooting guide in `/troubleshooting-guide.md`
+- Review the deployment checklist in `/DEPLOYMENT_CHECKLIST.md`
+
+## 🎯 **Roadmap**
+
+- [ ] Mobile application (React Native)
+- [ ] Advanced analytics and reporting
+- [ ] Third-party integrations
+- [ ] AI-powered task assignment
+- [ ] Advanced workflow automation
+- [ ] Multi-language support
+- [ ] Advanced notification system
+- [ ] API rate limiting and caching
 
 ---
 
-**ProjectHub** - Streamlining project management for electrical and IT professionals.
+**Built with ❤️ for efficient project management**
