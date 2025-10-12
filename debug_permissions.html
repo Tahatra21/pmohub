@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Permissions</title>
+</head>
+<body>
+    <h1>Debug User Permissions</h1>
+    <div id="output"></div>
+    
+    <script>
+        // Test function to decode token and check permissions
+        function testPermissions() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                document.getElementById('output').innerHTML = '<p style="color: red;">No token found in localStorage</p>';
+                return;
+            }
+            
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                console.log('Decoded token:', payload);
+                
+                const user = payload;
+                const permissions = user.permissions || {};
+                
+                let html = '<h2>User Info:</h2>';
+                html += `<p><strong>Name:</strong> ${user.name}</p>`;
+                html += `<p><strong>Email:</strong> ${user.email}</p>`;
+                html += `<p><strong>Role:</strong> ${user.role?.name}</p>`;
+                
+                html += '<h2>Permission Check Results:</h2>';
+                
+                // Test specific permissions
+                const testPermissions = ['projects:create', 'projects:update', 'projects:all', 'tasks:all'];
+                testPermissions.forEach(perm => {
+                    const hasPermission = permissions[perm] === true || user.role?.name === 'Admin';
+                    html += `<p><strong>${perm}:</strong> <span style="color: ${hasPermission ? 'green' : 'red'}">${hasPermission ? 'YES' : 'NO'}</span></p>`;
+                });
+                
+                html += '<h2>All Permissions:</h2>';
+                html += '<ul>';
+                Object.keys(permissions).forEach(perm => {
+                    html += `<li><strong>${perm}:</strong> ${permissions[perm]}</li>`;
+                });
+                html += '</ul>';
+                
+                document.getElementById('output').innerHTML = html;
+                
+            } catch (error) {
+                document.getElementById('output').innerHTML = `<p style="color: red;">Error decoding token: ${error.message}</p>`;
+            }
+        }
+        
+        // Run test when page loads
+        window.onload = testPermissions;
+    </script>
+</body>
+</html>

@@ -1,0 +1,381 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  phone     String?
+  avatar    String?
+  roleId    String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  role              Role              @relation(fields: [roleId], references: [id])
+  assignedTasks     Task[]            @relation("TaskAssignee")
+  createdTasks      Task[]            @relation("TaskCreator")
+  projectMembers    ProjectMember[]
+  riskAssignments   Risk[]            @relation("RiskAssignee")
+  createdProjects   Project[]         @relation("ProjectCreator")
+  activityLogs      ActivityLog[]
+  documents         Document[]
+  createdResources  Resource[]        @relation("ResourceCreator")
+  resourceProfile   Resource?         @relation("ResourceUser")
+  allocatedResources ResourceAllocation[] @relation("ResourceAllocator")
+
+  @@map("tbl_users")
+}
+
+// Role-Based Access Control
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  permissions Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  users User[]
+
+  @@map("tbl_roles")
+}
+
+// Project Management
+model Project {
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  type        String
+  client      String
+  location    String?
+  status      ProjectStatus @default(PLANNING)
+  priority    Priority     @default(MEDIUM)
+  progress    Float        @default(0)
+  startDate   DateTime?
+  endDate     DateTime?
+  createdBy   String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // Relations
+  creator           User                @relation("ProjectCreator", fields: [createdBy], references: [id])
+  members           ProjectMember[]
+  tasks             Task[]
+  milestones        Milestone[]
+  budgets           Budget[]
+  risks             Risk[]
+  documents         Document[]
+  resourceAllocations ResourceAllocation[]
+
+  @@map("tbl_projects")
+}
+
+model ProjectMember {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  role      String
+  joinedAt  DateTime @default(now())
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@map("tbl_project_members")
+}
+
+// Task Management
+model Task {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  projectId   String
+  assigneeId  String?
+  creatorId   String
+  status      TaskStatus @default(TODO)
+  priority    Priority   @default(MEDIUM)
+  progress    Float      @default(0)
+  startDate   DateTime?
+  endDate     DateTime?
+  estimatedHours Float?
+  actualHours    Float?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relations
+  project     Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignee    User?              @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  creator     User               @relation("TaskCreator", fields: [creatorId], references: [id])
+  dependencies TaskDependency[]  @relation("DependentTask")
+  dependents   TaskDependency[]  @relation("DependsOnTask")
+  documents    Document[]
+  resourceAllocations ResourceAllocation[] @relation("TaskResourceAllocations")
+  budgets     Budget[]
+
+  @@map("tbl_tasks")
+}
+
+model TaskDependency {
+  id              String @id @default(cuid())
+  taskId          String
+  dependsOnTaskId String
+
+  // Relations
+  task       Task @relation("DependentTask", fields: [taskId], references: [id], onDelete: Cascade)
+  dependsOn  Task @relation("DependsOnTask", fields: [dependsOnTaskId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, dependsOnTaskId])
+  @@map("tbl_task_dependencies")
+}
+
+// Milestones
+model Milestone {
+  id          String        @id @default(cuid())
+  title       String
+  description String?
+  projectId   String
+  status      MilestoneStatus @default(UPCOMING)
+  dueDate     DateTime?
+  completedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("tbl_milestones")
+}
+
+// Resource Management
+model Resource {
+  id          String       @id @default(cuid())
+  userId      String       @unique // Link to actual user
+  name        String       // Person's name
+  type        ResourceType // Role type
+  description String?      // Additional info about the person
+  status      ResourceStatus @default(AVAILABLE)
+  skills      String?      // Skills/Expertise
+  department  String?      // Department
+  phone       String?      // Contact phone
+  email       String?      // Contact email
+  maxProjects Int          @default(3) // Maximum concurrent projects
+  hourlyRate  Float?       // Hourly rate for cost tracking
+  createdBy   String       // Who added this person
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // Relations
+  user        User               @relation("ResourceUser", fields: [userId], references: [id], onDelete: Cascade)
+  creator     User               @relation("ResourceCreator", fields: [createdBy], references: [id])
+  allocations ResourceAllocation[]
+
+  @@map("tbl_resources")
+}
+
+model ResourceAllocation {
+  id         String   @id @default(cuid())
+  resourceId String   // Person being allocated
+  projectId  String
+  taskId     String?  // Optional: allocate to specific task
+  role       String?  // Role in this project/task (e.g., "Lead Developer", "Site Supervisor")
+  allocationPercentage Int @default(100) // Percentage of time allocated (100% = full time)
+  startDate  DateTime @default(now())
+  endDate    DateTime? // When allocation ends
+  status     AllocationStatus @default(ACTIVE)
+  notes      String?  // Additional notes about the allocation
+  allocatedAt DateTime @default(now())
+  allocatedBy String  // Who made this allocation
+
+  // Relations
+  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  task       Task?    @relation("TaskResourceAllocations", fields: [taskId], references: [id], onDelete: SetNull)
+  allocator  User     @relation("ResourceAllocator", fields: [allocatedBy], references: [id])
+
+  @@map("tbl_resource_allocations")
+}
+
+// Budget & Financials
+model Budget {
+  id               String    @id @default(cuid())
+  costCenter       String    @map("cost_center") // Cost Center
+  manager          String    // Manager
+  prkNumber        String    @map("prk_number") // PRK Number
+  prkName          String    @map("prk_name") // PRK Name
+  kategoriBeban    String    @map("kategori_beban") // Kategori Beban (Expense Category)
+  coaNumber        String    @map("coa_number") // COA Number (Chart of Accounts)
+  anggaranTersedia Decimal   @map("anggaran_tersedia") // Anggaran Tersedia (Available Budget)
+  nilaiPo          Decimal   @default(0) @map("nilai_po") // Nilai PO (PO Value)
+  nilaiNonPo       Decimal   @default(0) @map("nilai_non_po") // Nilai Non PO (Non-PO Value)
+  totalSpr         Decimal   @default(0) @map("total_spr") // Total SPR
+  totalPenyerapan  Decimal   @default(0) @map("total_penyerapan") // Total Penyerapan (Total Absorption)
+  sisaAnggaran     Decimal   @default(0) @map("sisa_anggaran") // Sisa Anggaran (Remaining Budget)
+  tahun            Int       // Tahun (Year)
+  projectId        String?   @map("project_id") // Optional link to projects
+  taskId           String?   @map("task_id") // Optional link to tasks
+  budgetType       BudgetType @default(PROJECT) @map("budget_type") // Type of budget allocation
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  task    Task?    @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@map("tbl_budgets")
+}
+
+// Risk & Issue Tracking
+model Risk {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  projectId   String
+  severity    RiskLevel
+  status      RiskStatus @default(OPEN)
+  mitigation  String?
+  assigneeId  String?
+  identifiedAt DateTime @default(now())
+  resolvedAt  DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relations
+  project  Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignee User?   @relation("RiskAssignee", fields: [assigneeId], references: [id])
+
+  @@map("tbl_risks")
+}
+
+// Document Management
+model Document {
+  id          String       @id @default(cuid())
+  title       String
+  description String?
+  fileName    String
+  filePath    String
+  fileSize    Int
+  fileType    String
+  projectId   String?
+  taskId      String?
+  uploadedBy  String
+  isPublic    Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // Relations
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  task      Task?    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  uploader  User     @relation(fields: [uploadedBy], references: [id])
+
+  @@map("tbl_documents")
+}
+
+// Activity Log / Audit Trail
+model ActivityLog {
+  id          String       @id @default(cuid())
+  action      String
+  entity      String
+  entityId    String
+  description String?
+  userId      String
+  metadata    Json?
+  createdAt   DateTime     @default(now())
+
+  // Relations
+  user    User     @relation(fields: [userId], references: [id])
+
+  @@map("tbl_activity_logs")
+}
+
+
+// Enums
+
+enum ProjectStatus {
+  PLANNING
+  IN_PROGRESS
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  REVIEW
+  COMPLETED
+  CANCELLED
+}
+
+enum MilestoneStatus {
+  UPCOMING
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ResourceType {
+  PROJECT_MANAGER
+  FIELD_ENGINEER
+  IT_DEVELOPER
+  TECHNICAL_TEAM
+  CLIENT_STAKEHOLDER
+}
+
+enum ResourceStatus {
+  AVAILABLE
+  ALLOCATED
+  BUSY
+  ON_LEAVE
+}
+
+enum AllocationStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RiskStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum BudgetType {
+  PROJECT
+  TASK
+  GENERAL
+}
