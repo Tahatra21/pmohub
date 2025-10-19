@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { verifyToken } from '../../../../lib/auth';
+import { verifyToken } from '@/lib/auth';
 
 const prisma = new PrismaClient();
 
@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   try {
     // Verify authentication
     const authResult = await verifyToken(request);
-    if (!authResult.success) {
+    if (!authResult || !authResult.success) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
   try {
     // Verify authentication
     const authResult = await verifyToken(request);
-    if (!authResult.success) {
+    if (!authResult || !authResult.success) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -140,7 +140,7 @@ export async function PUT(request: NextRequest) {
   try {
     // Verify authentication
     const authResult = await verifyToken(request);
-    if (!authResult.success) {
+    if (!authResult || !authResult.success) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -203,7 +203,7 @@ export async function DELETE(request: NextRequest) {
   try {
     // Verify authentication
     const authResult = await verifyToken(request);
-    if (!authResult.success) {
+    if (!authResult || !authResult.success) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
