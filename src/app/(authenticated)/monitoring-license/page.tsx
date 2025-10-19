@@ -354,7 +354,7 @@ const MonitoringLicensePage: React.FC = () => {
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-7 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-6 mb-8">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
@@ -419,7 +419,7 @@ const MonitoringLicensePage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-gray-600 dark:text-gray-400">Total Purchase Price</p>
-                <p className="text-lg font-bold text-blue-600 dark:text-blue-400 truncate">{formatCurrencyCompact(stats.totalCost)}</p>
+                <p className="text-xl font-bold text-blue-600 dark:text-blue-400">{formatCurrencyCompact(stats.totalCost)}</p>
               </div>
               <InfoIcon className="w-8 h-8 text-blue-600 dark:text-blue-400 flex-shrink-0 ml-2" />
             </div>
