@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Filter } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import ProductGrid from './ProductGrid';
 import ProductDetailModal from './ProductDetailModal';
 import ProductForm from './ProductForm';
@@ -209,13 +210,10 @@ const ProductPage: React.FC = () => {
         </div>
         
         <div className="flex items-center gap-3">
-          <button
-            onClick={handleAddProduct}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-          >
-            <Plus className="w-4 h-4 mr-2" />
+          <Button onClick={handleAddProduct}>
+            <Plus className="h-4 w-4 mr-2" />
             Add Product
-          </button>
+          </Button>
         </div>
       </div>
 

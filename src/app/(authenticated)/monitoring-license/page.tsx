@@ -14,6 +14,7 @@ import {
   InfoIcon,
 } from "@/icons";
 
+import { Button } from "@/components/ui/button";
 import LicenseForm from "@/components/monitoring/LicenseForm";
 
 // Update interface LicenseData untuk mencocokkan API response
@@ -350,13 +351,10 @@ const MonitoringLicensePage: React.FC = () => {
             Monitor dan kelola lisensi software perusahaan
           </p>
         </div>
-        <button
-          onClick={handleAddNew}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-        >
+        <Button onClick={handleAddNew}>
           <PlusIcon className="w-4 h-4 mr-2" />
           Add License
-        </button>
+        </Button>
       </div>
 
       {/* Statistics Cards */}
@@ -471,17 +469,14 @@ const MonitoringLicensePage: React.FC = () => {
             </div>
             
             <div className="flex gap-2">
-              <button
-                onClick={handleAddNew}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-              >
-                <PlusIcon className="w-4 h-4" />
+              <Button>
+                <PlusIcon className="w-4 h-4 mr-2" />
                 Tambah Lisensi
-              </button>
-              <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
-                <DownloadIcon className="w-4 h-4" />
+              </Button>
+              <Button variant="outline">
+                <DownloadIcon className="w-4 h-4 mr-2" />
                 Export
-              </button>
+              </Button>
             </div>
           </div>
         </div>
