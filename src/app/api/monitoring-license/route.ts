@@ -7,9 +7,16 @@ const prisma = new PrismaClient();
 export async function GET(request: NextRequest) {
   try {
     // Verify authentication
-    const authResult = await verifyToken(request);
-    if (!authResult || !authResult.success) {
+    const token = request.headers.get('Authorization')?.replace('Bearer ', '');
+    const auth = await verifyToken(token || '');
+    
+    if (!auth) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Basic authorization check for Monitoring License access
+    if (auth.role?.name !== 'Admin' && auth.role?.name !== 'Project Manager' && auth.role?.name !== 'User') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -72,9 +79,16 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Verify authentication
-    const authResult = await verifyToken(request);
-    if (!authResult || !authResult.success) {
+    const token = request.headers.get('Authorization')?.replace('Bearer ', '');
+    const auth = await verifyToken(token || '');
+    
+    if (!auth) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Basic authorization check for Monitoring License access
+    if (auth.role?.name !== 'Admin' && auth.role?.name !== 'Project Manager' && auth.role?.name !== 'User') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const body = await request.json();
@@ -139,9 +153,16 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     // Verify authentication
-    const authResult = await verifyToken(request);
-    if (!authResult || !authResult.success) {
+    const token = request.headers.get('Authorization')?.replace('Bearer ', '');
+    const auth = await verifyToken(token || '');
+    
+    if (!auth) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Basic authorization check for Monitoring License access
+    if (auth.role?.name !== 'Admin' && auth.role?.name !== 'Project Manager' && auth.role?.name !== 'User') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const body = await request.json();
@@ -202,9 +223,16 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     // Verify authentication
-    const authResult = await verifyToken(request);
-    if (!authResult || !authResult.success) {
+    const token = request.headers.get('Authorization')?.replace('Bearer ', '');
+    const auth = await verifyToken(token || '');
+    
+    if (!auth) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Basic authorization check for Monitoring License access
+    if (auth.role?.name !== 'Admin' && auth.role?.name !== 'Project Manager' && auth.role?.name !== 'User') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const body = await request.json();
