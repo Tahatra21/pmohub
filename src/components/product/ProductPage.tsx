@@ -209,21 +209,18 @@ const ProductPage: React.FC = () => {
         </div>
         
         <div className="flex items-center gap-3">
-              <button
-                onClick={handleAddProduct}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Product
-              </button>
-            </div>
-          </div>
+          <button
+            onClick={handleAddProduct}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Product
+          </button>
         </div>
+      </div>
 
-        {/* Divider */}
-        <div className="border-t border-gray-200 dark:border-gray-700 mx-6"></div>
-
-        {/* Filters */}
+      {/* Filters */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
         <div className="p-6 pt-4">
           {/* Search */}
           <form onSubmit={handleSearch} className="mb-6">
@@ -308,6 +305,7 @@ const ProductPage: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
 
       {/* Product Grid */}
       <ProductGrid
