@@ -200,17 +200,15 @@ const ProductPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-        <div className="p-6 pb-4">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Product Lifecycle</h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">
-                Kelola semua produk dalam siklus hidup pengembangan. Total: {pagination.totalItems} produk
-              </p>
-            </div>
-            
-            <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Product Catalog</h1>
+          <p className="text-muted-foreground">
+            Kelola semua produk dalam siklus hidup pengembangan. Total: {pagination.totalItems} produk
+          </p>
+        </div>
+        
+        <div className="flex items-center gap-3">
               <button
                 onClick={handleAddProduct}
                 className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
@@ -310,7 +308,6 @@ const ProductPage: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
 
       {/* Product Grid */}
       <ProductGrid
