@@ -329,11 +329,6 @@ const MonitoringLicensePage: React.FC = () => {
     }, 0)
   };
 
-  // Debug logging
-  console.log('Stats:', stats);
-  console.log('Total Cost:', stats.totalCost);
-  console.log('Formatted:', formatCurrencyCompact(stats.totalCost));
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -552,20 +547,6 @@ const MonitoringLicensePage: React.FC = () => {
                             title="View Details"
                           >
                             <EyeIcon className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleEdit(item)}
-                            className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 p-1 rounded transition-colors"
-                            title="Edit"
-                          >
-                            <PencilIcon className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(item.id)}
-                            className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 p-1 rounded transition-colors"
-                            title="Delete"
-                          >
-                            <TrashBinIcon className="w-4 h-4" />
                           </button>
                         </div>
                       </td>
@@ -790,6 +771,39 @@ const MonitoringLicensePage: React.FC = () => {
                       {viewingLicense.metode || '-'}
                     </p>
                   </div>
+                </div>
+                
+                {/* Action Buttons */}
+                <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <button
+                    onClick={() => setIsViewModalOpen(false)}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors"
+                  >
+                    Close
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditingLicense(viewingLicense);
+                      setIsViewModalOpen(false);
+                      setIsFormOpen(true);
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors flex items-center gap-2"
+                  >
+                    <PencilIcon className="w-4 h-4" />
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (window.confirm('Are you sure you want to delete this license?')) {
+                        handleDelete(viewingLicense.id);
+                        setIsViewModalOpen(false);
+                      }
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors flex items-center gap-2"
+                  >
+                    <TrashBinIcon className="w-4 h-4" />
+                    Delete
+                  </button>
                 </div>
               </div>
             </div>
