@@ -8,10 +8,17 @@ export async function GET(request: NextRequest) {
   try {
     // Verify authentication
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
-    const auth = await verifyToken(token || '');
+    console.log('Token received:', token ? 'Present' : 'Missing');
+    console.log('Token length:', token ? token.length : 0);
+    
+    if (!token) {
+      return NextResponse.json({ error: 'No token provided' }, { status: 401 });
+    }
+    
+    const auth = await verifyToken(token);
     
     if (!auth) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
     // Basic authorization check for Monitoring License access

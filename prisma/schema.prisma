@@ -500,7 +500,7 @@ model MonitoringLicense {
   nama_aplikasi           String
   bpo                     String?
   jenis_lisensi           String?
-  jumlah                  Int      @default(0)
+  jumlah                  Int?
   harga_satuan            Decimal? @default(0)
   harga_total             Decimal? @default(0)
   periode_po              Int      @default(0)
