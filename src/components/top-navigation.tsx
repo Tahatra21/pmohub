@@ -362,6 +362,15 @@ export default function TopNavigation() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => router.push('/profile')}>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push('/settings')}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="text-red-600">
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>
@@ -464,6 +473,57 @@ export default function TopNavigation() {
                           </Link>
                         );
                       })}
+                    </div>
+                    
+                    {/* Mobile User Info Footer */}
+                    <div className="mt-auto pt-4 border-t border-gray-200">
+                      <div className="flex items-center px-3 py-2">
+                        <Avatar className="h-8 w-8 mr-3">
+                          <AvatarImage src="" alt={user.name} />
+                          <AvatarFallback className="bg-blue-600 text-white text-sm">
+                            {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium">{user.name}</span>
+                          <span className="text-xs text-gray-500">{user.role.name}</span>
+                        </div>
+                      </div>
+                      <div className="px-3 space-y-1">
+                        <Button 
+                          variant="ghost" 
+                          onClick={() => {
+                            router.push('/profile');
+                            setMobileMenuOpen(false);
+                          }}
+                          className="w-full justify-start text-sm"
+                        >
+                          <User className="mr-2 h-4 w-4" />
+                          Profile
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          onClick={() => {
+                            router.push('/settings');
+                            setMobileMenuOpen(false);
+                          }}
+                          className="w-full justify-start text-sm"
+                        >
+                          <Settings className="mr-2 h-4 w-4" />
+                          Settings
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          onClick={() => {
+                            handleLogout();
+                            setMobileMenuOpen(false);
+                          }}
+                          className="w-full justify-start text-sm text-red-600 hover:text-red-700"
+                        >
+                          <LogOut className="mr-2 h-4 w-4" />
+                          Log out
+                        </Button>
+                      </div>
                     </div>
                   </SheetContent>
                 </Sheet>
