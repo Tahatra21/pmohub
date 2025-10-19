@@ -503,8 +503,8 @@ model MonitoringLicense {
   jumlah                  Int?
   harga_satuan            Decimal? @default(0)
   harga_total             Decimal? @default(0)
-  periode_po              Int      @default(0)
-  kontrak_layanan_bulan   Int      @default(0)
+  periode_po              Int?
+  kontrak_layanan_bulan   Int?
   start_layanan           DateTime?
   akhir_layanan           DateTime?
   metode                  String?
