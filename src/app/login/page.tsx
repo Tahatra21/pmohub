@@ -146,9 +146,11 @@ export default function LoginPage() {
               </div>
               
               <div className="mt-4 space-y-2 text-sm text-gray-600">
-                <p><strong>Admin:</strong> admin@projecthub.com / admin123</p>
-                <p><strong>Manager:</strong> manager@projecthub.com / manager123</p>
-                <p><strong>Engineer:</strong> engineer@projecthub.com / engineer123</p>
+                <p><strong>Admin:</strong> admin@test.com / password123</p>
+                <p><strong>Project Manager:</strong> pm@pmo.com / password123</p>
+                <p><strong>Engineer:</strong> engineer@pmo.com / password123</p>
+                <p><strong>Developer:</strong> developer@pmo.com / password123</p>
+                <p><strong>Client:</strong> client@pmo.com / password123</p>
               </div>
             </div>
           </CardContent>
