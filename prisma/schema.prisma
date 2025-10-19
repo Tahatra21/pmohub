@@ -305,6 +305,64 @@ model ActivityLog {
   @@map("tbl_activity_logs")
 }
 
+// Product Lifecycle Management
+model Product {
+  id            String   @id @default(cuid())
+  produk        String   // Product name
+  deskripsi     String?  // Product description
+  id_kategori   String   // Category ID
+  id_segmen     String   // Segment ID
+  id_stage      String   // Stage ID
+  harga         String?  // Price
+  tanggal_launch String? // Launch date
+  pelanggan     String?  // Customer
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  // Relations
+  kategori      Category @relation(fields: [id_kategori], references: [id])
+  segmen        Segment  @relation(fields: [id_segmen], references: [id])
+  stage         Stage    @relation(fields: [id_stage], references: [id])
+
+  @@map("tbl_produk")
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  kategori  String   @unique // Category name
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  products  Product[]
+
+  @@map("tbl_kategori")
+}
+
+model Segment {
+  id        String   @id @default(cuid())
+  segmen    String   @unique // Segment name
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  products  Product[]
+
+  @@map("tbl_segmen")
+}
+
+model Stage {
+  id        String   @id @default(cuid())
+  stage     String   @unique // Stage name
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  products  Product[]
+
+  @@map("tbl_stage")
+}
+
 
 // Enums
 
@@ -378,4 +436,59 @@ enum BudgetType {
   PROJECT
   TASK
   GENERAL
+}
+
+// Lifecycle tables (synced from lifecycle_db)
+model ProductLifecycle {
+  id                Int      @id
+  produk            String?
+  deskripsi         String?
+  id_kategori       Int?
+  id_segmen         Int?
+  id_stage          Int?
+  harga             BigInt?
+  tanggal_launch    DateTime?
+  pelanggan         String?
+  created_at        DateTime?
+  updated_at        DateTime?
+  tanggal_stage_end DateTime?
+  tanggal_stage_start DateTime?
+
+  @@map("tbl_produk_lifecycle")
+}
+
+model SegmentLifecycle {
+  id         Int      @id
+  segmen     String
+  created_at DateTime?
+  updated_at DateTime?
+  icon_light String?
+  icon_dark  String?
+
+  @@map("tbl_segmen_lifecycle")
+}
+
+model StageLifecycle {
+  id         Int      @id
+  stage      String?
+  created_at DateTime?
+  updated_at DateTime?
+  icon_light String?
+  icon_dark  String?
+
+  @@map("tbl_stage_lifecycle")
+}
+
+model StageHistoriLifecycle {
+  id                  Int      @id
+  id_produk           Int
+  stage_previous      Int?
+  stage_now           Int?
+  catatan             String?
+  created_at          DateTime?
+  updated_at          DateTime?
+  tanggal_perubahan   DateTime?
+  performance_metrics Json?
+
+  @@map("tbl_stage_histori_lifecycle")
 }

@@ -12,6 +12,7 @@ import {
   DollarSign, 
   FileText, 
   Activity,
+  RefreshCw,
   Settings,
   LogOut,
   Menu,
@@ -82,6 +83,12 @@ const navigationItems: NavigationItem[] = [
     href: '/budget',
     icon: DollarSign,
     permission: 'budgets:read',
+  },
+  {
+    name: 'Product Lifecycle',
+    href: '/product-lifecycle',
+    icon: RefreshCw,
+    permission: 'lifecycle:read',
   },
   {
     name: 'Settings',

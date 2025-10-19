@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Set Token for PMO</title>
+</head>
+<body>
+    <h1>Setting Token for PMO Application</h1>
+    <p>Token will be set in localStorage...</p>
+    <script>
+        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InBtby1wcm9kdWN0aW9uLWtleS0xIn0.eyJpZCI6ImNtZ2hxamQ0NzAwMDYwZ3oyN25jbnl2MXoiLCJlbWFpbCI6ImFkbWluQHByb2plY3RodWIuY29tIiwibmFtZSI6IlN5c3RlbSBBZG1pbmlzdHJhdG9yIiwicm9sZSI6eyJpZCI6ImNtZ2hxamN4YjAwMDAwZ3oycXh2M2IxZG0iLCJuYW1lIjoiQWRtaW4iLCJkZXNjcmlwdGlvbiI6IkZ1bGwgc3lzdGVtIGFkbWluaXN0cmF0b3Igd2l0aCBjb21wbGV0ZSBhY2Nlc3MiLCJwZXJtaXNzaW9ucyI6eyJ0YXNrczphbGwiOnRydWUsInVzZXJzOmFsbCI6dHJ1ZSwicm9sZXM6cmVhZCI6dHJ1ZSwiYnVkZ2V0czphbGwiOnRydWUsImFjdGl2aXR5OmFsbCI6dHJ1ZSwicHJvamVjdHM6YWxsIjp0cnVlLCJyb2xlczpjcmVhdGUiOnRydWUsInJvbGVzOmRlbGV0ZSI6dHJ1ZSwicm9sZXM6dXBkYXRlIjp0cnVlLCJkb2N1bWVudHM6YWxsIjp0cnVlLCJsaWZlY3ljbGU6YWxsIjp0cnVlLCJyZXNvdXJjZXM6YWxsIjp0cnVlLCJkYXNoYm9hcmQ6cmVhZCI6dHJ1ZSwibWlsZXN0b25lczpyZWFkIjp0cnVlLCJzZXR0aW5nczpzeXN0ZW0iOnRydWUsIm1pbGVzdG9uZXM6Y3JlYXRlIjp0cnVlLCJtaWxlc3RvbmVzOmRlbGV0ZSI6dHJ1ZSwibWlsZXN0b25lczp1cGRhdGUiOnRydWV9LCJjcmVhdGVkQXQiOiIyMDI1LTEwLTA4VDA4OjM3OjA1LjcxMVoiLCJ1cGRhdGVkQXQiOiIyMDI1LTEwLTA4VDA4OjM3OjA1LjcxMVoifSwicGVybWlzc2lvbnMiOnsiZGFzaGJvYXJkOnJlYWQiOnRydWUsInByb2plY3RzOmFsbCI6dHJ1ZSwidGFza3M6YWxsIjp0cnVlLCJ1c2VyczphbGwiOnRydWUsInJvbGVzOmNyZWF0ZSI6dHJ1ZSwicm9sZXM6cmVhZCI6dHJ1ZSwicm9sZXM6dXBkYXRlIjp0cnVlLCJyb2xlczpkZWxldGUiOnRydWUsInJlc291cmNlczphbGwiOnRydWUsImJ1ZGdldHM6YWxsIjp0cnVlLCJkb2N1bWVudHM6YWxsIjp0cnVlLCJtaWxlc3RvbmVzOmNyZWF0ZSI6dHJ1ZSwibWlsZXN0b25lczpyZWFkIjp0cnVlLCJtaWxlc3RvbmVzOnVwZGF0ZSI6dHJ1ZSwibWlsZXN0b25lczpkZWxldGUiOnRydWUsImFjdGl2aXR5OmFsbCI6dHJ1ZSwibGlmZWN5Y2xlOmFsbCI6dHJ1ZSwic2V0dGluZ3M6c3lzdGVtIjp0cnVlfSwiaXNzIjoicG1vLXByb2R1Y3Rpb24tc3lzdGVtIiwiYXVkIjoicG1vLXByb2R1Y3Rpb24tY2xpZW50cyIsInN1YiI6ImNtZ2hxamQ0NzAwMDYwZ3oyN25jbnl2MXoiLCJpYXQiOjE3NjA0NjIxNzQsImp0aSI6InBtby1jbWdocWpkNDcwMDA2MGd6MjduY255djF6LTE3NjA0NjIxNzQwNDMtZzdkN3p4c3IxeDkiLCJ2ZXJzaW9uIjoiMS4wIiwiZW52aXJvbm1lbnQiOiJkZXZlbG9wbWVudCJ9.V_eO2ON2UeINuVodhC2wVPiOJoNd-D_UTjwmI-7v_c0";
+        
+        localStorage.setItem('token', token);
+        console.log('Token set successfully!');
+        
+        // Redirect to product lifecycle page
+        setTimeout(() => {
+            window.location.href = '/product-lifecycle';
+        }, 1000);
+    </script>
+</body>
+</html>

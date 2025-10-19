@@ -81,6 +81,13 @@ export const PERMISSIONS = {
   'settings:read': 'View settings',
   'settings:update': 'Update settings',
   'settings:system': 'System-wide settings access',
+  
+  // Lifecycle permissions
+  'lifecycle:read': 'View product lifecycle analytics',
+  'lifecycle:create': 'Create lifecycle data',
+  'lifecycle:update': 'Update lifecycle data',
+  'lifecycle:delete': 'Delete lifecycle data',
+  'lifecycle:all': 'Full lifecycle access',
 } as const;
 
 // Role definitions with their permissions - Simplified 3-Role System
@@ -103,6 +110,7 @@ export const ROLE_PERMISSIONS: Record<string, RolePermissions> = {
     'milestones:update': true,
     'milestones:delete': true,
     'activity:all': true,
+    'lifecycle:all': true,
     'settings:system': true,
   },
   
@@ -126,6 +134,7 @@ export const ROLE_PERMISSIONS: Record<string, RolePermissions> = {
     'milestones:update': true,
     'milestones:delete': true,
     'activity:read': true,
+    'lifecycle:read': true,
     'settings:read': true,
   },
   
@@ -140,6 +149,7 @@ export const ROLE_PERMISSIONS: Record<string, RolePermissions> = {
     'documents:download': true,
     'milestones:read': true,
     'activity:read': true,
+    'lifecycle:read': true,
     'settings:read': true,
   },
 
