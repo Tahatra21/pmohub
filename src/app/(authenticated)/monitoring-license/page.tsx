@@ -272,11 +272,11 @@ const MonitoringLicensePage: React.FC = () => {
     }
     
     if (numAmount >= 1000000000) {
-      return `Rp ${(numAmount / 1000000000).toFixed(1)}^9`;
+      return `Rp ${(numAmount / 1000000000).toFixed(1)}B`;
     } else if (numAmount >= 1000000) {
-      return `Rp ${(numAmount / 1000000).toFixed(1)}^6`;
+      return `Rp ${(numAmount / 1000000).toFixed(1)}M`;
     } else if (numAmount >= 1000) {
-      return `Rp ${(numAmount / 1000).toFixed(1)}^3`;
+      return `Rp ${(numAmount / 1000).toFixed(1)}K`;
     } else {
       return `Rp ${numAmount.toFixed(0)}`;
     }
@@ -357,11 +357,11 @@ const MonitoringLicensePage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-7 gap-6 mb-8">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="text-sm text-gray-600 dark:text-gray-400">Total Licenses</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
               </div>
-              <InfoIcon className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+              <InfoIcon className="w-8 h-8 text-blue-600 dark:text-blue-400 flex-shrink-0 ml-2" />
             </div>
           </div>
           
@@ -417,11 +417,11 @@ const MonitoringLicensePage: React.FC = () => {
           
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="text-sm text-gray-600 dark:text-gray-400">Total Purchase Price</p>
-                <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{formatCurrencyCompact(stats.totalCost)}</p>
+                <p className="text-lg font-bold text-blue-600 dark:text-blue-400 truncate">{formatCurrencyCompact(stats.totalCost)}</p>
               </div>
-              <InfoIcon className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+              <InfoIcon className="w-8 h-8 text-blue-600 dark:text-blue-400 flex-shrink-0 ml-2" />
             </div>
           </div>
         </div>
