@@ -196,6 +196,11 @@ export default function TopNavigation() {
     });
   };
 
+  // Auto close submenus when pathname changes
+  useEffect(() => {
+    setExpandedMenus(new Set());
+  }, [pathname]);
+
   const filteredNavigationItems = navigationItems.filter(item => {
     if (!item.permission || hasPermission(item.permission)) {
       return true;
