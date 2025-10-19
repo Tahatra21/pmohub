@@ -67,6 +67,7 @@ const MonitoringLicensePage: React.FC = () => {
       setLoading(true);
       setError(null);
   
+      const token = localStorage.getItem('token');
       const params = new URLSearchParams({
         page: page.toString(),
         limit: itemsPerPage.toString(),
@@ -78,6 +79,7 @@ const MonitoringLicensePage: React.FC = () => {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         signal,
       });
@@ -153,6 +155,7 @@ const MonitoringLicensePage: React.FC = () => {
   const handleFormSubmit = async (formData: any) => {
     try {
       setFormLoading(true);
+      const token = localStorage.getItem('token');
       const url = '/api/monitoring-license';
       const method = editingLicense ? 'PUT' : 'POST';
       
@@ -160,6 +163,7 @@ const MonitoringLicensePage: React.FC = () => {
         method,
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(editingLicense ? { ...formData, id: editingLicense.id } : formData),
       });
@@ -187,10 +191,12 @@ const MonitoringLicensePage: React.FC = () => {
     }
 
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch('/api/monitoring-license', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ id }),
       });
