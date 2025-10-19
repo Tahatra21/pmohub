@@ -492,3 +492,50 @@ model StageHistoriLifecycle {
 
   @@map("tbl_stage_histori_lifecycle")
 }
+
+// Monitoring License tables (synced from lifecycle_db)
+model MonitoringLicense {
+  id                      Int      @id
+  no_urut                 Int?
+  nama_aplikasi           String
+  bpo                     String?
+  jenis_lisensi           String?
+  jumlah                  Int      @default(0)
+  harga_satuan            Decimal? @default(0)
+  harga_total             Decimal? @default(0)
+  periode_po              Int      @default(0)
+  kontrak_layanan_bulan   Int      @default(0)
+  start_layanan           DateTime?
+  akhir_layanan           DateTime?
+  metode                  String?
+  keterangan_akun         String?
+  tanggal_aktivasi        DateTime?
+  tanggal_pembaharuan     DateTime?
+  status                  String   @default("Active")
+  created_at              DateTime?
+  updated_at              DateTime?
+  selling_price           Decimal? @default(0)
+  purchase_price_per_unit Decimal? @default(0)
+  total_purchase_price    Decimal? @default(0)
+  total_selling_price     Decimal? @default(0)
+
+  // Relations
+  notifications LicenseNotification[]
+
+  @@map("tbl_mon_licenses")
+}
+
+model LicenseNotification {
+  id                Int      @id
+  license_id        Int?
+  notification_type String
+  notification_date DateTime
+  is_sent           Boolean  @default(false)
+  sent_at           DateTime?
+  created_at        DateTime?
+
+  // Relations
+  license MonitoringLicense? @relation(fields: [license_id], references: [id], onDelete: Cascade)
+
+  @@map("tbl_license_notifications")
+}

@@ -16,7 +16,11 @@ import {
   LogOut,
   Menu,
   X,
-  User
+  User,
+  Monitor,
+  ShoppingCart,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -44,11 +48,12 @@ interface User {
 
 interface NavigationItem {
   name: string;
-  href: string;
+  href?: string;
   icon: any;
   permission?: string;
   badge?: string;
   badgeColor?: string;
+  children?: NavigationItem[];
 }
 
 const navigationItems: NavigationItem[] = [
@@ -83,6 +88,25 @@ const navigationItems: NavigationItem[] = [
     permission: 'budgets:read',
   },
   {
+    name: 'Product Monitoring',
+    icon: Monitor,
+    permission: 'lifecycle:all',
+    children: [
+      {
+        name: 'Product Catalog',
+        href: '/product-lifecycle',
+        icon: ShoppingCart,
+        permission: 'lifecycle:read',
+      },
+      {
+        name: 'Monitoring License',
+        href: '/monitoring-license',
+        icon: Activity,
+        permission: 'license:read',
+      },
+    ],
+  },
+  {
     name: 'Settings',
     href: '/settings',
     icon: Settings,
@@ -93,6 +117,7 @@ const navigationItems: NavigationItem[] = [
 export default function Navigation() {
   const [user, setUser] = useState<User | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [expandedMenus, setExpandedMenus] = useState<Set<string>>(new Set());
   const pathname = usePathname();
   const router = useRouter();
 
@@ -140,22 +165,105 @@ export default function Navigation() {
     router.push('/login');
   };
 
+  const toggleSubmenu = (menuName: string) => {
+    setExpandedMenus(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(menuName)) {
+        newSet.delete(menuName);
+      } else {
+        newSet.add(menuName);
+      }
+      return newSet;
+    });
+  };
+
   if (!user) {
     return null;
   }
 
-  const filteredNavigationItems = navigationItems.filter(item => 
-    !item.permission || hasPermission(item.permission)
-  );
+  const filteredNavigationItems = navigationItems.filter(item => {
+    if (!item.permission || hasPermission(item.permission)) {
+      return true;
+    }
+    
+    // If parent doesn't have permission, check if any child has permission
+    if (item.children) {
+      return item.children.some(child => 
+        !child.permission || hasPermission(child.permission)
+      );
+    }
+    
+    return false;
+  });
 
   const NavigationContent = () => (
     <nav className="flex flex-col space-y-1">
       {filteredNavigationItems.map((item) => {
         const isActive = pathname === item.href;
+        const hasChildren = item.children && item.children.length > 0;
+        const isExpanded = expandedMenus.has(item.name);
+        
+        if (hasChildren) {
+          return (
+            <div key={item.name}>
+              <button
+                onClick={() => toggleSubmenu(item.name)}
+                className={`flex items-center justify-between w-full px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                  isActive
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                }`}
+              >
+                <div className="flex items-center">
+                  <item.icon className="mr-3 h-5 w-5" />
+                  {item.name}
+                </div>
+                {isExpanded ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </button>
+              
+              {isExpanded && (
+                <div className="ml-6 mt-1 space-y-1">
+                  {item.children!.map((child) => {
+                    const isChildActive = pathname === child.href;
+                    const hasChildPermission = !child.permission || hasPermission(child.permission);
+                    
+                    if (!hasChildPermission) return null;
+                    
+                    return (
+                      <Link
+                        key={child.name}
+                        href={child.href!}
+                        className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                          isChildActive
+                            ? 'bg-blue-100 text-blue-700'
+                            : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                        }`}
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <child.icon className="mr-3 h-4 w-4" />
+                        {child.name}
+                        {child.badge && (
+                          <Badge className={`ml-auto ${child.badgeColor || 'bg-gray-100 text-gray-800'}`}>
+                            {child.badge}
+                          </Badge>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        }
+        
         return (
           <Link
             key={item.name}
-            href={item.href}
+            href={item.href!}
             className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
               isActive
                 ? 'bg-blue-100 text-blue-700'
