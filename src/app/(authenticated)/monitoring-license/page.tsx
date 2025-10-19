@@ -264,6 +264,24 @@ const MonitoringLicensePage: React.FC = () => {
     }).format(numAmount);
   };
 
+  // Compact currency formatter using ^9 notation
+  const formatCurrencyCompact = (amount: number) => {
+    const numAmount = Number(amount);
+    if (isNaN(numAmount)) {
+      return 'Rp 0';
+    }
+    
+    if (numAmount >= 1000000000) {
+      return `Rp ${(numAmount / 1000000000).toFixed(1)}^9`;
+    } else if (numAmount >= 1000000) {
+      return `Rp ${(numAmount / 1000000).toFixed(1)}^6`;
+    } else if (numAmount >= 1000) {
+      return `Rp ${(numAmount / 1000).toFixed(1)}^3`;
+    } else {
+      return `Rp ${numAmount.toFixed(0)}`;
+    }
+  };
+
   // Add date formatting function
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '-';
@@ -401,7 +419,7 @@ const MonitoringLicensePage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Total Purchase Price</p>
-                <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{formatCurrency(stats.totalCost)}</p>
+                <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{formatCurrencyCompact(stats.totalCost)}</p>
               </div>
               <InfoIcon className="w-8 h-8 text-blue-600 dark:text-blue-400" />
             </div>
@@ -516,10 +534,10 @@ const MonitoringLicensePage: React.FC = () => {
                         {formatDate(item.akhir_layanan)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                        {formatCurrency(Number(item.harga_total) || 0)}
+                        {formatCurrencyCompact(Number(item.harga_total) || 0)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                        {formatCurrency(Number(item.selling_price) || 0)}
+                        {formatCurrencyCompact(Number(item.selling_price) || 0)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
@@ -719,7 +737,7 @@ const MonitoringLicensePage: React.FC = () => {
                       Unit Price
                     </label>
                     <p className="mt-1 text-sm text-gray-900 dark:text-white">
-                      {formatCurrency(Number(viewingLicense.harga_satuan) || 0)}
+                      {formatCurrencyCompact(Number(viewingLicense.harga_satuan) || 0)}
                     </p>
                   </div>
                   
@@ -728,7 +746,7 @@ const MonitoringLicensePage: React.FC = () => {
                       Total Price
                     </label>
                     <p className="mt-1 text-sm text-gray-900 dark:text-white">
-                      {formatCurrency(Number(viewingLicense.harga_total) || 0)}
+                      {formatCurrencyCompact(Number(viewingLicense.harga_total) || 0)}
                     </p>
                   </div>
                   
@@ -737,7 +755,7 @@ const MonitoringLicensePage: React.FC = () => {
                       Selling Price
                     </label>
                     <p className="mt-1 text-sm text-gray-900 dark:text-white">
-                      {formatCurrency(Number(viewingLicense.selling_price) || 0)}
+                      {formatCurrencyCompact(Number(viewingLicense.selling_price) || 0)}
                     </p>
                   </div>
                   
