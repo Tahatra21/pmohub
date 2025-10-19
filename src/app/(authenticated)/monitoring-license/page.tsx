@@ -68,6 +68,9 @@ const MonitoringLicensePage: React.FC = () => {
       setError(null);
   
       const token = localStorage.getItem('token');
+      console.log('Token from localStorage:', token ? 'Present' : 'Missing');
+      console.log('Token length:', token ? token.length : 0);
+      
       const params = new URLSearchParams({
         page: page.toString(),
         limit: itemsPerPage.toString(),
