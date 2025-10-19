@@ -329,6 +329,11 @@ const MonitoringLicensePage: React.FC = () => {
     }, 0)
   };
 
+  // Debug logging
+  console.log('Stats:', stats);
+  console.log('Total Cost:', stats.totalCost);
+  console.log('Formatted:', formatCurrencyCompact(stats.totalCost));
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -417,7 +422,7 @@ const MonitoringLicensePage: React.FC = () => {
           
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <div className="flex items-center justify-between">
-              <div className="flex-1 min-w-0">
+              <div className="flex-1">
                 <p className="text-sm text-gray-600 dark:text-gray-400">Total Purchase Price</p>
                 <p className="text-xl font-bold text-blue-600 dark:text-blue-400">{formatCurrencyCompact(stats.totalCost)}</p>
               </div>
