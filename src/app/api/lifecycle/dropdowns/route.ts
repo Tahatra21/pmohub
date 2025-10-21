@@ -11,13 +11,11 @@ export async function GET(req: Request) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    // Basic authorization check for Product Lifecycle access
-    if (auth.role?.name !== 'Admin' && auth.role?.name !== 'Project Manager' && auth.role?.name !== 'User') {
-      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    }
+    // Allow all authenticated users to view dropdown data
+    // Remove restrictive permission check
 
-    // Fetch stages from lifecycle tables using Prisma models
-    const stages = await db.stageLifecycle.findMany({
+    // Fetch stages from PMO tables
+    const stages = await db.stage.findMany({
       select: {
         id: true,
         stage: true
@@ -27,7 +25,7 @@ export async function GET(req: Request) {
 
     console.log('Stages fetched:', stages);
 
-    // Fetch categories from existing PMO tables (if any)
+    // Fetch categories from PMO tables
     const categories = await db.category.findMany({
       select: {
         id: true,
@@ -38,8 +36,8 @@ export async function GET(req: Request) {
 
     console.log('Categories fetched:', categories);
 
-    // Fetch segments from lifecycle tables using Prisma models
-    const segments = await db.segmentLifecycle.findMany({
+    // Fetch segments from PMO tables
+    const segments = await db.segment.findMany({
       select: {
         id: true,
         segmen: true

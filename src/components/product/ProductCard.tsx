@@ -1,23 +1,15 @@
 import React, { useState } from 'react';
 import { Eye, Edit, Trash2, Paperclip } from 'lucide-react';
-
-interface Product {
-  id: number;
-  produk: string;
-  deskripsi: string;
-  id_kategori: number;
-  id_segmen: number;
-  id_stage: number;
-  harga: number;
-  tanggal_launch: string;
-  pelanggan: string;
-  created_at: string;
-  updated_at: string;
-  tanggal_stage_end: string;
-  tanggal_stage_start: string;
-  segmen: string;
-  stage: string;
-}
+import { Product } from '@/types';
+import { 
+  getProductStageName, 
+  getProductSegmentName, 
+  getProductCategoryName,
+  getStageBadgeColor, 
+  getSegmentBadgeColor,
+  formatCurrency,
+  formatDate
+} from '@/utils/productUtils';
 
 interface ProductCardProps {
   product: Product;
@@ -36,37 +28,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
 }) => {
   const [showActions, setShowActions] = useState(false);
 
-
-  const getStageBadgeColor = (stage: string) => {
-    switch (stage?.toLowerCase()) {
-      case 'introduction':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300';
-      case 'growth':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300';
-      case 'maturity':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300';
-      case 'decline':
-        return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300';
-    }
-  };
-
-  const getSegmentBadgeColor = (segment: string) => {
-    switch (segment?.toLowerCase()) {
-      case 'enterprise':
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300';
-      case 'consumer':
-        return 'bg-pink-100 text-pink-800 dark:bg-pink-900/20 dark:text-pink-300';
-      case 'sme':
-        return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-300';
-      case 'government':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-300';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300';
-    }
-  };
-
   return (
     <div 
       className="group bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 overflow-hidden"
@@ -82,10 +43,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
             </h3>
             <div className="flex items-center gap-2 flex-wrap">
               <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getStageBadgeColor(product.stage)}`}>
-                {product.stage}
+                {getProductStageName(product.stage)}
               </span>
               <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getSegmentBadgeColor(product.segmen)}`}>
-                {product.segmen}
+                {getProductSegmentName(product.segmen)}
               </span>
             </div>
           </div>
@@ -98,7 +59,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
               <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Kategori</span>
             </div>
-            <span className="text-sm font-semibold text-gray-900 dark:text-white">Category {product.id_kategori || 'N/A'}</span>
+            <span className="text-sm font-semibold text-gray-900 dark:text-white">
+              {getProductCategoryName(product.kategori)}
+            </span>
           </div>
           
           <div className="flex items-center justify-between py-2">

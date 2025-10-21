@@ -268,6 +268,60 @@ export interface FilterParams {
   dateTo?: string;
 }
 
+export interface Product {
+  id: string;
+  produk: string;
+  deskripsi?: string;
+  id_kategori: string;
+  id_segmen: string;
+  id_stage: string;
+  harga?: string;
+  tanggal_launch?: string;
+  pelanggan?: string;
+  created_at: string;
+  updated_at: string;
+  // Relations
+  kategori?: {
+    id: string;
+    kategori: string;
+    created_at: string;
+    updated_at: string;
+  };
+  segmen?: {
+    id: string;
+    segmen: string;
+    created_at: string;
+    updated_at: string;
+  };
+  stage?: {
+    id: string;
+    stage: string;
+    created_at: string;
+    updated_at: string;
+  };
+}
+
+export interface Category {
+  id: string;
+  kategori: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Segment {
+  id: string;
+  segmen: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Stage {
+  id: string;
+  stage: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface AuthUser {
   id: string;
   email: string;

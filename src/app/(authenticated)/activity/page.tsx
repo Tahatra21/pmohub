@@ -77,7 +77,7 @@ export default function ActivityPage() {
 
   const fetchActivities = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       const params = new URLSearchParams({
         page: currentPage.toString(),
         limit: '20',

@@ -1,0 +1,16 @@
+{
+  "summary": {
+    "totalGroups": 1,
+    "totalDuplicates": 1
+  },
+  "groups": [
+    {
+      "canonical": ".env",
+      "members": [
+        ".env",
+        "env.example"
+      ],
+      "hash": "060ba4c636bb4bd4f9e2b195519215e2ea6524972324fe5e270c157c8ebbd98c"
+    }
+  ]
+}

@@ -7,27 +7,15 @@ import ProductGrid from './ProductGrid';
 import ProductDetailModal from './ProductDetailModal';
 import ProductForm from './ProductForm';
 import AttachmentModal from './AttachmentModal';
-
-interface Product {
-  id: number;
-  produk: string;
-  deskripsi: string;
-  id_kategori: number;
-  id_segmen: number;
-  id_stage: number;
-  harga: number;
-  tanggal_launch: string;
-  pelanggan: string;
-  created_at: string;
-  updated_at: string;
-  tanggal_stage_end: string;
-  tanggal_stage_start: string;
-  segmen: string;
-  stage: string;
-}
+import { Product, Category, Segment, Stage } from '@/types';
 
 interface DropdownOption {
-  id: number;
+  id: string;
+  name: string;
+}
+
+interface Filters {
+  search?: string;
   stage?: string;
   kategori?: string;
   segmen?: string;
@@ -71,7 +59,7 @@ const ProductPage: React.FC = () => {
   const fetchProducts = async (page = 1) => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       const params = new URLSearchParams({
         page: page.toString(),
         limit: '12'
@@ -108,7 +96,7 @@ const ProductPage: React.FC = () => {
   const fetchDropdownOptions = async () => {
     try {
       setLoadingDropdowns(true);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch('/api/lifecycle/dropdowns', {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -156,7 +144,7 @@ const ProductPage: React.FC = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`/api/lifecycle/products/${id}`, {
         method: 'DELETE',
         headers: {

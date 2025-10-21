@@ -100,7 +100,7 @@ export default function TasksPage() {
   const fetchTasks = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const params = new URLSearchParams({
@@ -131,7 +131,7 @@ export default function TasksPage() {
 
   const handleCreateTask = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const response = await fetch('/api/tasks', {
@@ -172,7 +172,7 @@ export default function TasksPage() {
     if (!editingTask) return;
     
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const response = await fetch('/api/tasks', {
@@ -208,7 +208,7 @@ export default function TasksPage() {
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const response = await fetch(`/api/tasks?id=${taskId}`, {
@@ -257,7 +257,7 @@ export default function TasksPage() {
     if (!progressTask) return;
     
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const response = await fetch(`/api/tasks/${progressTask.id}/progress`, {

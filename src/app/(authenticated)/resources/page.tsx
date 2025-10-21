@@ -150,7 +150,7 @@ export default function ResourcesPage() {
   const fetchResources = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const params = new URLSearchParams({
@@ -179,7 +179,7 @@ export default function ResourcesPage() {
 
   const fetchProjects = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const response = await fetch('/api/projects?limit=100', {
@@ -197,7 +197,7 @@ export default function ResourcesPage() {
 
   const fetchUsers = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const response = await fetch('/api/users?limit=100', {
@@ -215,7 +215,7 @@ export default function ResourcesPage() {
 
   const handleCreateResource = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const response = await fetch('/api/resources', {
@@ -261,7 +261,7 @@ export default function ResourcesPage() {
     if (!editingResource) return;
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const response = await fetch('/api/resources', {
@@ -297,7 +297,7 @@ export default function ResourcesPage() {
     if (!confirm('Are you sure you want to remove this person from the resource pool?')) return;
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const response = await fetch(`/api/resources?id=${id}`, {
@@ -322,7 +322,7 @@ export default function ResourcesPage() {
     if (!allocatingResource) return;
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const response = await fetch('/api/resource-allocations', {
@@ -687,14 +687,14 @@ export default function ResourcesPage() {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="font-medium">Current Projects:</span>
-                  <p className={resource.isAtCapacity ? 'text-red-600' : ''}>
-                    {resource.currentProjects} / {resource.maxProjects}
+                  <p className={(resource.isAtCapacity || false) ? 'text-red-600' : ''}>
+                    {resource.currentProjects || 0} / {resource.maxProjects || 0}
                   </p>
                 </div>
                 <div>
                   <span className="font-medium">Allocation:</span>
-                  <p className={resource.isOverAllocated ? 'text-red-600' : ''}>
-                    {resource.totalAllocationPercentage}%
+                  <p className={(resource.isOverAllocated || false) ? 'text-red-600' : ''}>
+                    {resource.totalAllocationPercentage || 0}%
                   </p>
                 </div>
               </div>
@@ -702,11 +702,11 @@ export default function ResourcesPage() {
               <div>
                 <div className="flex justify-between text-sm mb-1">
                   <span>Utilization</span>
-                  <span className={getUtilizationColor(resource.utilizationRate, resource.isOverAllocated)}>
-                    {resource.utilizationRate.toFixed(1)}%
+                  <span className={getUtilizationColor(resource.utilizationRate || 0, resource.isOverAllocated || false)}>
+                    {(resource.utilizationRate || 0).toFixed(1)}%
                   </span>
                 </div>
-                <Progress value={Math.min(resource.utilizationRate, 100)} className="h-2" />
+                <Progress value={Math.min(resource.utilizationRate || 0, 100)} className="h-2" />
               </div>
 
               <div className="space-y-2 text-sm text-gray-600">
@@ -742,18 +742,18 @@ export default function ResourcesPage() {
                 )}
               </div>
 
-              {resource.allocations.length > 0 && (
+              {(resource.allocations || []).length > 0 && (
                 <div className="text-sm">
                   <span className="font-medium">Current Allocations:</span>
                   <div className="space-y-1 mt-1">
-                    {resource.allocations.slice(0, 2).map((allocation) => (
+                    {(resource.allocations || []).slice(0, 2).map((allocation) => (
                       <div key={allocation.id} className="flex items-center justify-between p-2 bg-gray-50 rounded text-xs">
                         <span>{allocation.project.name}</span>
                         <span>{allocation.allocationPercentage}%</span>
                       </div>
                     ))}
-                    {resource.allocations.length > 2 && (
-                      <p className="text-xs text-gray-500">+{resource.allocations.length - 2} more...</p>
+                    {(resource.allocations || []).length > 2 && (
+                      <p className="text-xs text-gray-500">+{(resource.allocations || []).length - 2} more...</p>
                     )}
                   </div>
                 </div>

@@ -98,7 +98,7 @@ export default function SettingsPage() {
 
   // Load user from token
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('auth_token');
     if (token) {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));

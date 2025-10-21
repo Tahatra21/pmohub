@@ -36,10 +36,8 @@ export async function GET(req: Request) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    // Basic authorization check for Product Lifecycle access
-    if (auth.role?.name !== 'Admin' && auth.role?.name !== 'Project Manager' && auth.role?.name !== 'User') {
-      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    }
+    // Allow all authenticated users to view products
+    // Remove restrictive permission check
 
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get('page') || '1');
@@ -51,33 +49,47 @@ export async function GET(req: Request) {
 
     const skip = (page - 1) * limit;
 
-    // Get products with pagination using Prisma models with joins
-    const products = await db.$queryRaw`
-      SELECT 
-        p.id,
-        p.produk,
-        p.deskripsi,
-        p.id_kategori,
-        p.id_segmen,
-        p.id_stage,
-        p.harga,
-        p.tanggal_launch,
-        p.pelanggan,
-        p.created_at,
-        p.updated_at,
-        p.tanggal_stage_end,
-        p.tanggal_stage_start,
-        s.segmen,
-        st.stage
-      FROM tbl_produk_lifecycle p
-      LEFT JOIN tbl_segmen_lifecycle s ON p.id_segmen = s.id
-      LEFT JOIN tbl_stage_lifecycle st ON p.id_stage = st.id
-      ORDER BY p.created_at DESC
-      LIMIT ${limit} OFFSET ${skip}
-    `;
+    // Use Prisma models instead of raw SQL
+    const whereClause: any = {};
+    
+    if (search) {
+      whereClause.produk = {
+        contains: search,
+        mode: 'insensitive'
+      };
+    }
+    
+    if (stage) {
+      whereClause.id_stage = stage;
+    }
+    
+    if (category) {
+      whereClause.id_kategori = category;
+    }
+    
+    if (segment) {
+      whereClause.id_segmen = segment;
+    }
+
+    // Get products with pagination using Prisma
+    const products = await db.product.findMany({
+      where: whereClause,
+      include: {
+        kategori: true,
+        segmen: true,
+        stage: true
+      },
+      orderBy: {
+        created_at: 'desc'
+      },
+      skip: skip,
+      take: limit
+    });
 
     // Get total count
-    const totalItems = await db.productLifecycle.count();
+    const totalItems = await db.product.count({
+      where: whereClause
+    });
 
     const totalPages = Math.ceil(totalItems / limit);
 

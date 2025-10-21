@@ -68,7 +68,7 @@ const MonitoringLicensePage: React.FC = () => {
       setLoading(true);
       setError(null);
   
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       console.log('Token from localStorage:', token ? 'Present' : 'Missing');
       console.log('Token length:', token ? token.length : 0);
       
@@ -159,7 +159,7 @@ const MonitoringLicensePage: React.FC = () => {
   const handleFormSubmit = async (formData: any) => {
     try {
       setFormLoading(true);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       const url = '/api/monitoring-license';
       const method = editingLicense ? 'PUT' : 'POST';
       
@@ -195,7 +195,7 @@ const MonitoringLicensePage: React.FC = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch('/api/monitoring-license', {
         method: 'DELETE',
         headers: {
@@ -265,7 +265,7 @@ const MonitoringLicensePage: React.FC = () => {
     }).format(numAmount);
   };
 
-  // Compact currency formatter using ^9 notation
+  // Compact currency formatter using Indonesian Rupiah notation
   const formatCurrencyCompact = (amount: number) => {
     const numAmount = Number(amount);
     if (isNaN(numAmount)) {
@@ -273,11 +273,11 @@ const MonitoringLicensePage: React.FC = () => {
     }
     
     if (numAmount >= 1000000000) {
-      return `Rp ${(numAmount / 1000000000).toFixed(1)}B`;
+      return `Rp ${(numAmount / 1000000000).toFixed(1)}M`; // M = Milyard (Billion)
     } else if (numAmount >= 1000000) {
-      return `Rp ${(numAmount / 1000000).toFixed(1)}M`;
+      return `Rp ${(numAmount / 1000000).toFixed(1)}Jt`; // Jt = Juta (Million)
     } else if (numAmount >= 1000) {
-      return `Rp ${(numAmount / 1000).toFixed(1)}K`;
+      return `Rp ${(numAmount / 1000).toFixed(1)}Rb`; // Rb = Ribu (Thousand)
     } else {
       return `Rp ${numAmount.toFixed(0)}`;
     }
@@ -351,81 +351,81 @@ const MonitoringLicensePage: React.FC = () => {
             Monitor dan kelola lisensi software perusahaan
           </p>
         </div>
-        <Button onClick={handleAddNew}>
-          <PlusIcon className="w-4 h-4 mr-2" />
-          Add License
-        </Button>
       </div>
 
       {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-6 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-gray-600 dark:text-gray-400">Total Licenses</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden mb-8">
+          <div className="overflow-x-auto">
+            <div className="min-w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-0">
+              {/* Total Licenses Card */}
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-r border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-shadow duration-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-1">Total Licenses</p>
+                    <p className="text-3xl font-bold text-blue-700 dark:text-blue-300">{stats.total}</p>
+                    <p className="text-xs text-blue-500 dark:text-blue-400 mt-1">All licenses</p>
+                  </div>
+                  <div className="bg-blue-500 rounded-full p-3 flex-shrink-0 ml-3">
+                    <InfoIcon className="w-6 h-6 text-white" />
+                  </div>
+                </div>
               </div>
-              <InfoIcon className="w-8 h-8 text-blue-600 dark:text-blue-400 flex-shrink-0 ml-2" />
-            </div>
-          </div>
-          
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Active</p>
-                <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.active}</p>
+              
+              {/* Active Card */}
+              <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-r border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-shadow duration-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-green-600 dark:text-green-400 mb-1">Active</p>
+                    <p className="text-3xl font-bold text-green-700 dark:text-green-300">{stats.active}</p>
+                    <p className="text-xs text-green-500 dark:text-green-400 mt-1">Currently active</p>
+                  </div>
+                  <div className="bg-green-500 rounded-full p-3 flex-shrink-0 ml-3">
+                    <CheckCircleIcon className="w-6 h-6 text-white" />
+                  </div>
+                </div>
               </div>
-              <CheckCircleIcon className="w-8 h-8 text-green-600 dark:text-green-400" />
-            </div>
-          </div>
-          
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Expiring Soon</p>
-                <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{stats.expiringSoon}</p>
+              
+              {/* Expiring Soon Card */}
+              <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 border-r border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-shadow duration-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400 mb-1">Expiring Soon</p>
+                    <p className="text-3xl font-bold text-yellow-700 dark:text-yellow-300">{stats.expiringSoon}</p>
+                    <p className="text-xs text-yellow-500 dark:text-yellow-400 mt-1">Need attention</p>
+                  </div>
+                  <div className="bg-yellow-500 rounded-full p-3 flex-shrink-0 ml-3">
+                    <TimeIcon className="w-6 h-6 text-white" />
+                  </div>
+                </div>
               </div>
-              <TimeIcon className="w-8 h-8 text-yellow-600 dark:text-yellow-400" />
-            </div>
-          </div>
-          
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Expired</p>
-                <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.expired}</p>
+              
+              {/* Expired Card */}
+              <div className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-r border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-shadow duration-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-red-600 dark:text-red-400 mb-1">Expired</p>
+                    <p className="text-3xl font-bold text-red-700 dark:text-red-300">{stats.expired}</p>
+                    <p className="text-xs text-red-500 dark:text-red-400 mt-1">Require renewal</p>
+                  </div>
+                  <div className="bg-red-500 rounded-full p-3 flex-shrink-0 ml-3">
+                    <AlertIcon className="w-6 h-6 text-white" />
+                  </div>
+                </div>
               </div>
-              <AlertIcon className="w-8 h-8 text-red-600 dark:text-red-400" />
-            </div>
-          </div>
-          
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Perpetual</p>
-                <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{stats.perpetual}</p>
+              
+              {/* Total Purchase Card */}
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-6 hover:shadow-lg transition-shadow duration-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-purple-600 dark:text-purple-400 mb-1">Total Purchase</p>
+                    <p className="text-2xl font-bold text-purple-700 dark:text-purple-300">{formatCurrencyCompact(stats.totalCost)}</p>
+                    <p className="text-xs text-purple-500 dark:text-purple-400 mt-1">Total investment</p>
+                  </div>
+                  <div className="bg-purple-500 rounded-full p-3 flex-shrink-0 ml-3">
+                    <InfoIcon className="w-6 h-6 text-white" />
+                  </div>
+                </div>
               </div>
-              <InfoIcon className="w-8 h-8 text-purple-600 dark:text-purple-400" />
-            </div>
-          </div>
-          
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Subscription</p>
-                <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{stats.subscription}</p>
-              </div>
-              <InfoIcon className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
-            </div>
-          </div>
-          
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <p className="text-sm text-gray-600 dark:text-gray-400">Total Purchase Price</p>
-                <p className="text-xl font-bold text-blue-600 dark:text-blue-400">{formatCurrencyCompact(stats.totalCost)}</p>
-              </div>
-              <InfoIcon className="w-8 h-8 text-blue-600 dark:text-blue-400 flex-shrink-0 ml-2" />
             </div>
           </div>
         </div>
@@ -606,7 +606,7 @@ const MonitoringLicensePage: React.FC = () => {
                       const pageNum = Math.max(1, Math.min(page - 2 + i, totalPages - 4 + i));
                       return (
                         <button
-                          key={pageNum}
+                          key={`page-${i}-${pageNum}`}
                           onClick={() => handlePageChange(pageNum)}
                           className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
                             pageNum === page

@@ -99,9 +99,9 @@ export async function GET(request: NextRequest) {
             select: {
               id: true,
               name: true,
+              email: true,
             },
           },
-          _count: true,
         },
         orderBy: {
           createdAt: 'desc',
@@ -112,50 +112,10 @@ export async function GET(request: NextRequest) {
       db.task.count({ where }),
     ]);
 
-    // Fetch resource allocations for the tasks
-    const taskIds = tasks.map(task => task.id);
-    const resourceAllocations = await (db as any).resourceAllocation.findMany({
-      where: {
-        taskId: {
-          in: taskIds,
-        },
-      },
-      include: {
-        resource: {
-          select: {
-            id: true,
-            name: true,
-            type: true,
-            skills: true,
-            department: true,
-            email: true,
-            phone: true,
-          },
-        },
-      },
-    });
-
-    // Group resource allocations by task ID
-    const allocationsByTask = resourceAllocations.reduce((acc: any, allocation: any) => {
-      if (allocation.taskId) {
-        if (!acc[allocation.taskId]) {
-          acc[allocation.taskId] = [];
-        }
-        acc[allocation.taskId].push(allocation);
-      }
-      return acc;
-    }, {} as Record<string, any[]>);
-
-    // Merge resource allocations with tasks
-    const tasksWithAllocations = tasks.map(task => ({
-      ...task,
-      resourceAllocations: allocationsByTask[task.id] || [],
-    }));
-
     return NextResponse.json({
       success: true,
       data: {
-        tasks: tasksWithAllocations,
+        tasks,
         pagination: {
           page,
           limit,

@@ -1,0 +1,1065 @@
+{
+  "summary": {
+    "totalFiles": 117,
+    "byRisk": {
+      "Low": 2,
+      "Medium": 114,
+      "High": 1
+    }
+  },
+  "files": [
+    {
+      "path": "cleanup.config.json",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T13:10:36.975Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "components.json",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-09-02T10:47:22.000Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "create-admin-user.js",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-20T03:55:05.410Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "create-test-token.js",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-20T03:46:13.643Z",
+      "riskLevel": "Low"
+    },
+    {
+      "path": "database-safety-check.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T06:41:08.703Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "encrypt_ids_pmo.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T06:29:28.807Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "import_cost_data.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T06:21:59.568Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "migration-validation.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T06:43:20.247Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "prisma/seed.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T05:10:21.240Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "reports/duplicates.json",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T13:10:42.985Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "reports/unused_files.json",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T13:10:42.986Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "rollback-validation.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T06:43:20.247Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "scripts/cleanup-analyzer-refined.js",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T13:11:36.276Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "scripts/cleanup-analyzer.js",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T13:10:22.133Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "scripts/cleanup-analyzer.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T13:08:33.247Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "scripts/cleanup-dryrun.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T13:08:53.293Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "scripts/verify-safe-removal.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T13:09:10.527Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "seed-cost-estimator.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-19T16:15:50.410Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "seed-hjt-tables.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-19T16:05:29.050Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "seed-kategori.js",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-20T07:09:02.317Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "seed-project-types.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-09T07:15:46.055Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "seed-resources.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-08T12:40:32.383Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "server.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-09-02T10:47:23.000Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/app/(authenticated)/projects/page-new.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.636Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/app/(authenticated)/projects/page-old.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.637Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/app/(authenticated)/tasks/page-new.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.634Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/app/(authenticated)/tasks/page-old.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.635Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/app/globals.css",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T13:03:43.979Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/auth/PLNLandscapeLogin.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.686Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/auth/SOLARLandscapeLogin.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T13:03:43.979Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/cost/ImportPreviewTable.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.687Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/cost/ImportTariffWizard.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.688Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/cost/TotalsCard.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.688Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/monitoring/LicenseForm.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.694Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/notification-bell.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:52:41.226Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/product/AttachmentModal.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.689Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/product/ProductCard.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T12:37:58.354Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/product/ProductCardSkeleton.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.693Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/product/ProductDetailModal.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T12:37:58.492Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/product/ProductForm.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T12:37:58.534Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/product/ProductGrid.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T12:37:58.415Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/product/ProductPage.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T12:37:58.447Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/role-management.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.693Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/top-navigation.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T13:03:43.979Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/accordion.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.677Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/alert-dialog.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.672Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/alert.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.677Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/aspect-ratio.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.672Z",
+      "riskLevel": "Low"
+    },
+    {
+      "path": "src/components/ui/avatar.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.679Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/badge.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.679Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/breadcrumb.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.678Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/button.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.680Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/calendar.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.677Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/card.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.673Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/carousel.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.685Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/chart.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.675Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/checkbox.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.681Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/collapsible.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.682Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/command.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.678Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/context-menu.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.684Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/currency-input.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.678Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/dialog.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.679Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/drawer.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.677Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/dropdown-menu.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.682Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/form.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.684Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/hover-card.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.675Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/input-otp.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.675Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/input.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.683Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/label.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.676Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/menubar.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.679Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/navigation-menu.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.676Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/pagination.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.673Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/percent-input.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.673Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/popover.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.673Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/progress.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.674Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/radio-group.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.678Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/resizable.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.676Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/scroll-area.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.676Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/select.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.682Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/separator.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.680Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/sheet.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.676Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/sidebar.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.680Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/skeleton.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.684Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/slider.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.673Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/sonner.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.676Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/switch.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.677Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/table.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.680Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/tabs.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.673Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/textarea.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.683Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/toast.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.681Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/toaster.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.674Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/toggle-group.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.678Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/toggle.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.681Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/components/ui/tooltip.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.677Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/hooks/use-mobile.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.694Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/hooks/use-toast.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.695Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/hooks/useOptimizedFetch.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.695Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/icons/index.tsx",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.695Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/lib/api.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:21:39.509Z",
+      "riskLevel": "High"
+    },
+    {
+      "path": "src/lib/auth.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:24:50.257Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/lib/cost-calculator.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.697Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/lib/currency-utils.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.697Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/lib/database.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.697Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/lib/db.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.697Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/lib/notifications.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.696Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/lib/permissions.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:21:39.509Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/lib/socket.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.696Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/lib/utils.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.696Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/services/excelExportService.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.698Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/services/pdfExportService.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.699Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/services/secureExcelService.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.698Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/services/timelineService.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.698Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/types/index.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T12:37:58.325Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/types/timeline.types.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T10:14:30.631Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "src/utils/productUtils.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T12:47:37.871Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "sync_lifecycle_to_pmo.ts",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-21T06:06:36.203Z",
+      "riskLevel": "Medium"
+    },
+    {
+      "path": "update-project-types.js",
+      "reason": "No inbound references found",
+      "evidence": [
+        "Static analysis"
+      ],
+      "lastModified": "2025-10-20T04:06:00.482Z",
+      "riskLevel": "Medium"
+    }
+  ]
+}

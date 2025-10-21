@@ -79,7 +79,7 @@ export default function BudgetPage() {
   const fetchBudgets = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const params = new URLSearchParams({
@@ -112,7 +112,7 @@ export default function BudgetPage() {
 
   const handleCreateBudget = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const response = await fetch('/api/budgets', {
@@ -157,7 +157,7 @@ export default function BudgetPage() {
     if (!editingBudget) return;
     
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const response = await fetch('/api/budgets', {
@@ -193,7 +193,7 @@ export default function BudgetPage() {
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const response = await fetch(`/api/budgets?id=${budgetId}`, {

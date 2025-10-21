@@ -75,22 +75,6 @@ export async function GET(request: NextRequest) {
     const [budgets, total] = await Promise.all([
       db.budget.findMany({
         where,
-        include: {
-          project: {
-            select: {
-              id: true,
-              name: true,
-              type: true,
-            },
-          },
-          task: {
-            select: {
-              id: true,
-              title: true,
-              status: true,
-            },
-          },
-        },
         orderBy: {
           prkNumber: 'asc',
         },
@@ -157,22 +141,6 @@ export async function POST(request: NextRequest) {
         totalSpr: validatedData.totalSpr || 0,
         totalPenyerapan: validatedData.totalPenyerapan || 0,
         sisaAnggaran,
-      },
-      include: {
-        project: {
-          select: {
-            id: true,
-            name: true,
-            type: true,
-          },
-        },
-        task: {
-          select: {
-            id: true,
-            title: true,
-            status: true,
-          },
-        },
       },
     });
 
@@ -261,22 +229,6 @@ export async function PUT(request: NextRequest) {
       data: {
         ...validatedData,
         sisaAnggaran,
-      },
-      include: {
-        project: {
-          select: {
-            id: true,
-            name: true,
-            type: true,
-          },
-        },
-        task: {
-          select: {
-            id: true,
-            title: true,
-            status: true,
-          },
-        },
       },
     });
 

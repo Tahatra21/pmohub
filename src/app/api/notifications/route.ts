@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyToken, hasPermission } from '@/lib/auth';
+import { z } from 'zod';
+
+const markAsReadSchema = z.object({
+  action: z.enum(['markAsRead', 'markAllAsRead']),
+  notificationId: z.string().optional(),
+});
 
 export async function GET(request: NextRequest) {
   try {
-    // Get token from Authorization header
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
-
+    
     if (!token) {
       return NextResponse.json(
         { success: false, error: 'Authentication required' },
@@ -14,87 +19,132 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Verify token directly
     const user = await verifyToken(token);
-    if (!user || !hasPermission(user, 'dashboard:read')) {
+    if (!user) {
       return NextResponse.json(
-        { success: false, error: 'Insufficient permissions' },
-        { status: 403 }
+        { success: false, error: 'Invalid token' },
+        { status: 401 }
       );
     }
 
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
 
-    const skip = (page - 1) * limit;
-
     // For now, return mock notifications since we don't have a notifications table yet
+    // TODO: Implement actual notifications table and logic
     const mockNotifications = [
       {
         id: '1',
-        title: 'Project Deadline Approaching',
-        message: 'Smart Building Automation project deadline is in 3 days',
-        type: 'WARNING',
-        isRead: false,
-        createdAt: new Date().toISOString(),
-        projectId: 'project-1',
+        title: 'Welcome to SOLAR Hub',
+        message: 'Your account has been successfully created. Start managing your solar projects!',
+        type: 'success',
+        read: false,
+        timestamp: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
+        actionText: 'Get Started',
+        actionUrl: '/dashboard',
       },
       {
         id: '2',
-        title: 'Task Completed',
-        message: 'Testing Phase task has been completed',
-        type: 'SUCCESS',
-        isRead: false,
-        createdAt: new Date(Date.now() - 3600000).toISOString(),
-        taskId: 'task-1',
+        title: 'Project Update',
+        message: 'Solar Panel Installation project is 75% complete.',
+        type: 'info',
+        read: false,
+        timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
+        actionText: 'View Project',
+        actionUrl: '/projects',
       },
       {
         id: '3',
-        title: 'Budget Alert',
-        message: 'Hardware budget is 90% utilized',
-        type: 'WARNING',
-        isRead: true,
-        createdAt: new Date(Date.now() - 7200000).toISOString(),
-        budgetId: 'budget-1',
+        title: 'Task Assigned',
+        message: 'You have been assigned to "Site Survey" task.',
+        type: 'info',
+        read: true,
+        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
+        actionText: 'View Task',
+        actionUrl: '/tasks',
       },
       {
         id: '4',
-        title: 'Risk Identified',
-        message: 'New high-severity risk identified: Hardware Delay',
-        type: 'ERROR',
-        isRead: false,
-        createdAt: new Date(Date.now() - 10800000).toISOString(),
-        riskId: 'risk-1',
+        title: 'Budget Alert',
+        message: 'Project budget is running low. Consider reviewing expenses.',
+        type: 'warning',
+        read: true,
+        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
+        actionText: 'Review Budget',
+        actionUrl: '/budget',
       },
       {
         id: '5',
-        title: 'Document Uploaded',
-        message: 'System Architecture document has been uploaded',
-        type: 'INFO',
-        isRead: true,
-        createdAt: new Date(Date.now() - 14400000).toISOString(),
-        documentId: 'doc-1',
-      }
+        title: 'System Maintenance',
+        message: 'Scheduled maintenance completed successfully.',
+        type: 'success',
+        read: true,
+        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
+        actionText: 'View Details',
+        actionUrl: '/settings',
+      },
     ];
 
-    const total = mockNotifications.length;
-    const notifications = mockNotifications.slice(skip, skip + limit);
+    const unreadCount = mockNotifications.filter(n => !n.read).length;
+    const limitedNotifications = mockNotifications.slice(0, limit);
 
     return NextResponse.json({
       success: true,
       data: {
-        notifications,
-        pagination: {
-          page,
-          limit,
-          total,
-          pages: Math.ceil(total / limit),
-        },
+        notifications: limitedNotifications,
+        unreadCount,
+        totalCount: mockNotifications.length,
       },
     });
   } catch (error) {
-    console.error('Error fetching notifications:', error);
+    console.error('Get notifications error:', error);
+    return NextResponse.json(
+      { success: false, error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const token = request.headers.get('Authorization')?.replace('Bearer ', '');
+    
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const user = await verifyToken(token);
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid token' },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    const { action, notificationId } = markAsReadSchema.parse(body);
+
+    // For now, just return success since we're using mock data
+    // TODO: Implement actual database operations when notifications table is created
+    console.log(`Notification action: ${action}${notificationId ? ` for ID: ${notificationId}` : ''}`);
+
+    return NextResponse.json({
+      success: true,
+      message: `Notification${notificationId ? ` ${notificationId}` : 's'} marked as read`,
+    });
+  } catch (error) {
+    console.error('Update notification error:', error);
+    
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: 'Validation error', details: error.errors },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

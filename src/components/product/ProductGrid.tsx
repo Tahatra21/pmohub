@@ -1,18 +1,7 @@
 import React from 'react';
 import ProductCard from './ProductCard';
 import ProductCardSkeleton from './ProductCardSkeleton';
-
-interface Product {
-  id: string;
-  produk: string;
-  deskripsi: string;
-  kategori: string;
-  segmen: string;
-  stage: string;
-  harga: string;
-  tanggal_launch: string;
-  pelanggan: string;
-}
+import { Product } from '@/types';
 
 interface Pagination {
   currentPage: number;

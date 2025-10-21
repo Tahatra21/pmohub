@@ -21,10 +21,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    // Basic authorization check for Monitoring License access
-    if (auth.role?.name !== 'Admin' && auth.role?.name !== 'Project Manager' && auth.role?.name !== 'User') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    // Allow all authenticated users to view monitoring licenses
+    // Remove restrictive permission check
 
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
@@ -93,10 +91,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Basic authorization check for Monitoring License access
-    if (auth.role?.name !== 'Admin' && auth.role?.name !== 'Project Manager' && auth.role?.name !== 'User') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    // Allow all authenticated users to view monitoring licenses
+    // Remove restrictive permission check
 
     const body = await request.json();
     
@@ -167,10 +163,8 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Basic authorization check for Monitoring License access
-    if (auth.role?.name !== 'Admin' && auth.role?.name !== 'Project Manager' && auth.role?.name !== 'User') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    // Allow all authenticated users to view monitoring licenses
+    // Remove restrictive permission check
 
     const body = await request.json();
     
@@ -237,10 +231,8 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Basic authorization check for Monitoring License access
-    if (auth.role?.name !== 'Admin' && auth.role?.name !== 'Project Manager' && auth.role?.name !== 'User') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    // Allow all authenticated users to view monitoring licenses
+    // Remove restrictive permission check
 
     const body = await request.json();
     

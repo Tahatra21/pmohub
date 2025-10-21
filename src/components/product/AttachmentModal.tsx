@@ -43,7 +43,7 @@ const AttachmentModal: React.FC<AttachmentModalProps> = ({
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`/api/lifecycle/products/${product.id}/attachments`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -81,7 +81,7 @@ const AttachmentModal: React.FC<AttachmentModalProps> = ({
         ukuran_file: file.size.toString()
       };
 
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`/api/lifecycle/products/${product.id}/attachments`, {
         method: 'POST',
         headers: {
@@ -120,7 +120,7 @@ const AttachmentModal: React.FC<AttachmentModalProps> = ({
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`/api/lifecycle/products/${product?.id}/attachments/${attachmentId}`, {
         method: 'DELETE',
         headers: {

@@ -110,7 +110,7 @@ export default function ProjectsPage() {
 
   const fetchProjects = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       const params = new URLSearchParams({
         page: currentPage.toString(),
         limit: '10',
@@ -139,7 +139,7 @@ export default function ProjectsPage() {
 
   const handleCreateProject = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const response = await fetch('/api/projects', {
@@ -180,7 +180,7 @@ export default function ProjectsPage() {
     if (!editingProject) return;
     
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const response = await fetch('/api/projects', {
@@ -216,7 +216,7 @@ export default function ProjectsPage() {
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const response = await fetch(`/api/projects?id=${projectId}`, {

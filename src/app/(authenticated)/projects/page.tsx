@@ -123,7 +123,7 @@ export default function ProjectsPage() {
 
   // Load user from token
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('auth_token');
     if (token) {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
@@ -211,7 +211,7 @@ export default function ProjectsPage() {
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const params = new URLSearchParams({
@@ -249,7 +249,7 @@ export default function ProjectsPage() {
 
   const fetchResources = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const response = await fetch('/api/resources', {
@@ -317,7 +317,7 @@ export default function ProjectsPage() {
 
   const handleCreateProject = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const response = await fetch('/api/projects', {
@@ -389,7 +389,7 @@ export default function ProjectsPage() {
     if (!editingProject) return;
     
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const response = await fetch(`/api/projects/${editingProject.id}`, {
@@ -505,7 +505,7 @@ export default function ProjectsPage() {
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const response = await fetch(`/api/projects?id=${projectId}`, {
@@ -579,7 +579,7 @@ export default function ProjectsPage() {
     if (!progressProject) return;
     
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const response = await fetch(`/api/projects/${progressProject.id}/progress`, {
@@ -1014,7 +1014,7 @@ export default function ProjectsPage() {
                 <div className="space-y-2">
                   <div className="flex items-center text-sm text-muted-foreground">
                     <User className="h-4 w-4 mr-2" />
-                    {project.creator.name}
+                    {project.creator?.name || 'Unknown Creator'}
                   </div>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <MapPin className="h-4 w-4 mr-2" />
@@ -1040,21 +1040,21 @@ export default function ProjectsPage() {
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <CheckSquare className="h-4 w-4" />
-                      {project._count.tasks}
+                      {project._count?.tasks || 0}
                     </div>
                     {user && userLoaded && (hasPermission('resources:read') || hasPermission('projects:all')) && (
                       <div className="flex items-center gap-1">
                         <Users className="h-4 w-4" />
-                        {project._count.resourceAllocations || 0}
+                        {project._count?.resourceAllocations || 0}
                       </div>
                     )}
                     <div className="flex items-center gap-1">
                       <AlertTriangle className="h-4 w-4" />
-                      {project._count.risks}
+                      {project._count?.risks || 0}
                     </div>
                     <div className="flex items-center gap-1">
                       <FileText className="h-4 w-4" />
-                      {project._count.documents}
+                      {project._count?.documents || 0}
                     </div>
                   </div>
                   <Button variant="outline" size="sm" onClick={() => openViewDialog(project)}>

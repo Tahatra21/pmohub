@@ -1,20 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, AlertCircle, Upload, File } from 'lucide-react';
-
-interface Product {
-  id: string;
-  produk: string;
-  deskripsi: string;
-  kategori: string;
-  segmen: string;
-  stage: string;
-  harga: string;
-  tanggal_launch: string;
-  pelanggan: string;
-  id_kategori: string;
-  id_segmen: string;
-  id_stage: string;
-}
+import { Product, Category, Segment, Stage } from '@/types';
 
 interface DropdownOption {
   id: string;
@@ -69,7 +55,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
     const fetchDropdownOptions = async () => {
       try {
         setLoadingDropdowns(true);
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('auth_token');
         console.log('Token from localStorage:', token ? 'exists' : 'missing');
         
         const response = await fetch('/api/lifecycle/dropdowns', {
@@ -179,7 +165,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       const url = mode === 'create' 
         ? '/api/lifecycle/products'
         : `/api/lifecycle/products/${product?.id}`;

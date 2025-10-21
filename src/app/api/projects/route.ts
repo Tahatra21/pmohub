@@ -102,41 +102,9 @@ export async function GET(request: NextRequest) {
         where,
         include: {
           creator: { select: { id: true, name: true, email: true } },
-          members: {
-            include: {
-              user: { select: { id: true, name: true, email: true } },
-            },
-          },
-          tasks: {
-            select: { id: true, status: true },
-          },
-          resourceAllocations: {
-            include: {
-              resource: {
-                select: {
-                  id: true,
-                  name: true,
-                  type: true,
-                  skills: true,
-                  department: true,
-                  email: true,
-                  phone: true,
-                },
-              },
-              task: {
-                select: {
-                  id: true,
-                  title: true,
-                },
-              },
-            },
-          },
           _count: {
             select: {
               tasks: true,
-              risks: true,
-              documents: true,
-              resourceAllocations: true,
             },
           },
         },

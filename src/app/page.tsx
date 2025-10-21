@@ -8,7 +8,7 @@ export default function Home() {
 
   useEffect(() => {
     // Check if user is logged in, otherwise redirect to login
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('auth_token');
     if (token) {
       router.push('/dashboard');
     } else {

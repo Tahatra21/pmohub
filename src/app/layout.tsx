@@ -14,21 +14,16 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ProjectHub - Project Management System",
-  description: "Comprehensive project management system for electrical and IT projects. Track projects, tasks, resources, budgets, and risks with role-based access control.",
-  keywords: ["project management", "electrical projects", "IT projects", "task tracking", "resource management", "budget tracking", "risk management"],
-  authors: [{ name: "ProjectHub Team" }],
+  title: "SOLAR Hub - Solution Collaboration Platform",
+  description: "Comprehensive solar energy project management system. Track solar projects, tasks, resources, budgets, and costs with role-based access control.",
+  keywords: ["solar energy", "project management", "solar projects", "task tracking", "resource management", "budget tracking", "cost estimation"],
+  authors: [{ name: "SOLAR Hub Team" }],
   openGraph: {
-    title: "ProjectHub - Project Management System",
-    description: "Comprehensive project management for electrical and IT projects",
-    url: "https://projecthub.com",
-    siteName: "ProjectHub",
+    title: "SOLAR Hub - Collaboration Platform",
+    description: "Comprehensive Solution Architect Collaboration Platform",
+    url: "https://solarhub.com",
+    siteName: "SOLAR Hub",
     type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "ProjectHub - Project Management System",
-    description: "Comprehensive project management for electrical and IT projects",
   },
 };
 

@@ -80,7 +80,7 @@ export default function UsersPage() {
   // Fetch users
   const fetchUsers = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const response = await fetch('/api/users', {
@@ -104,7 +104,7 @@ export default function UsersPage() {
   // Fetch roles
   const fetchRoles = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const response = await fetch('/api/roles', {

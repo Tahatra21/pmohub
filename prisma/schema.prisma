@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,7 +7,106 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// User Management
+model EstimateLine {
+  id              String   @id @default(cuid())
+  estimateId      String?
+  costEstimatorId String?
+  type            String
+  refId           String?
+  description     String
+  unit            String
+  qty             Float
+  unitPrice       Float
+  isAtCost        Boolean  @default(false)
+  meta            Json?
+  lineTotal       Float
+  sort            Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([estimateId])
+  @@index([costEstimatorId])
+}
+
+model HjtRate {
+  id           String   @id @default(cuid())
+  type         String
+  no           Int?
+  spec         String?
+  item         String?
+  ref          String
+  khs2022      String?
+  monthly      Int?
+  daily        Int?
+  numericValue Int?
+  isAtCost     Boolean  @default(false)
+  note         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("tbl_hjt")
+}
+
+model HjtBlp {
+  id        String   @id @default(cuid())
+  spec      String
+  ref       String
+  monthly   Int
+  daily     Int
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("tbl_hjt_blp")
+}
+
+model HjtBlnp {
+  id           String   @id @default(cuid())
+  item         String
+  ref          String
+  khs2022      String
+  numericValue Int?
+  isAtCost     Boolean  @default(false)
+  note         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("tbl_hjt_blnp")
+}
+
+model CostEstimator {
+  id             String    @id @default(cuid())
+  name           String
+  projectId      String?
+  projectName    String?
+  client         String?
+  description    String?
+  status         String    @default("DRAFT")
+  version        String    @default("1.0")
+  markUpPct      Float     @default(0)
+  contingencyPct Float     @default(0)
+  discountPct    Float     @default(0)
+  ppnPct         Float     @default(11)
+  escalationPct  Float     @default(0)
+  subtotal       Float     @default(0)
+  escalation     Float     @default(0)
+  overhead       Float     @default(0)
+  contingency    Float     @default(0)
+  discount       Float     @default(0)
+  dpp            Float     @default(0)
+  ppn            Float     @default(0)
+  grandTotal     Float     @default(0)
+  assumptions    Json?
+  notes          String?
+  createdBy      String?
+  approvedBy     String?
+  approvedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("tbl_cost_estimator")
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -22,27 +115,21 @@ model User {
   phone     String?
   avatar    String?
   roleId    String
+  role      Role     @relation(fields: [roleId], references: [id])
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
-  role              Role              @relation(fields: [roleId], references: [id])
-  assignedTasks     Task[]            @relation("TaskAssignee")
-  createdTasks      Task[]            @relation("TaskCreator")
-  projectMembers    ProjectMember[]
-  riskAssignments   Risk[]            @relation("RiskAssignee")
-  createdProjects   Project[]         @relation("ProjectCreator")
-  activityLogs      ActivityLog[]
-  documents         Document[]
-  createdResources  Resource[]        @relation("ResourceCreator")
-  resourceProfile   Resource?         @relation("ResourceUser")
-  allocatedResources ResourceAllocation[] @relation("ResourceAllocator")
+  createdProjects     Project[]           @relation("ProjectCreator")
+  projectMemberships  ProjectMember[]
+  assignedTasks       Task[]              @relation("TaskAssignee")
+  createdTasks        Task[]              @relation("TaskCreator")
+  resource            Resource?           @relation("UserResource")
 
   @@map("tbl_users")
 }
 
-// Role-Based Access Control
 model Role {
   id          String   @id @default(cuid())
   name        String   @unique
@@ -52,37 +139,31 @@ model Role {
   updatedAt   DateTime @updatedAt
 
   // Relations
-  users User[]
+  users       User[]
 
   @@map("tbl_roles")
 }
 
-// Project Management
 model Project {
-  id          String      @id @default(cuid())
+  id          String        @id @default(cuid())
   name        String
   description String?
-  type        String
   client      String
   location    String?
   status      ProjectStatus @default(PLANNING)
-  priority    Priority     @default(MEDIUM)
-  progress    Float        @default(0)
+  priority    Priority      @default(MEDIUM)
+  progress    Float         @default(0)
   startDate   DateTime?
   endDate     DateTime?
   createdBy   String
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  type        String
 
   // Relations
-  creator           User                @relation("ProjectCreator", fields: [createdBy], references: [id])
-  members           ProjectMember[]
-  tasks             Task[]
-  milestones        Milestone[]
-  budgets           Budget[]
-  risks             Risk[]
-  documents         Document[]
-  resourceAllocations ResourceAllocation[]
+  creator             User               @relation("ProjectCreator", fields: [createdBy], references: [id])
+  members             ProjectMember[]
+  tasks               Task[]
 
   @@map("tbl_projects")
 }
@@ -102,33 +183,27 @@ model ProjectMember {
   @@map("tbl_project_members")
 }
 
-// Task Management
 model Task {
-  id          String     @id @default(cuid())
-  title       String
-  description String?
-  projectId   String
-  assigneeId  String?
-  creatorId   String
-  status      TaskStatus @default(TODO)
-  priority    Priority   @default(MEDIUM)
-  progress    Float      @default(0)
-  startDate   DateTime?
-  endDate     DateTime?
+  id             String     @id @default(cuid())
+  title          String
+  description    String?
+  projectId      String
+  assigneeId     String?
+  creatorId      String
+  status         TaskStatus @default(TODO)
+  priority       Priority   @default(MEDIUM)
+  progress       Float      @default(0)
+  startDate      DateTime?
+  endDate        DateTime?
   estimatedHours Float?
   actualHours    Float?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 
   // Relations
-  project     Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  assignee    User?              @relation("TaskAssignee", fields: [assigneeId], references: [id])
-  creator     User               @relation("TaskCreator", fields: [creatorId], references: [id])
-  dependencies TaskDependency[]  @relation("DependentTask")
-  dependents   TaskDependency[]  @relation("DependsOnTask")
-  documents    Document[]
-  resourceAllocations ResourceAllocation[] @relation("TaskResourceAllocations")
-  budgets     Budget[]
+  project           Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignee           User?               @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  creator            User                @relation("TaskCreator", fields: [creatorId], references: [id])
 
   @@map("tbl_tasks")
 }
@@ -138,135 +213,90 @@ model TaskDependency {
   taskId          String
   dependsOnTaskId String
 
-  // Relations
-  task       Task @relation("DependentTask", fields: [taskId], references: [id], onDelete: Cascade)
-  dependsOn  Task @relation("DependsOnTask", fields: [dependsOnTaskId], references: [id], onDelete: Cascade)
-
   @@unique([taskId, dependsOnTaskId])
   @@map("tbl_task_dependencies")
 }
 
-// Milestones
 model Milestone {
-  id          String        @id @default(cuid())
+  id          String          @id @default(cuid())
   title       String
   description String?
   projectId   String
   status      MilestoneStatus @default(UPCOMING)
   dueDate     DateTime?
   completedAt DateTime?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-
-  // Relations
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 
   @@map("tbl_milestones")
 }
 
-// Resource Management
 model Resource {
-  id          String       @id @default(cuid())
-  userId      String       @unique // Link to actual user
-  name        String       // Person's name
-  type        ResourceType // Role type
-  description String?      // Additional info about the person
+  id          String         @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  createdBy   String
+  userId      String         @unique
+  skills      String?
+  department  String?
+  phone       String?
+  email       String?
+  maxProjects Int            @default(3)
+  hourlyRate  Float?
   status      ResourceStatus @default(AVAILABLE)
-  skills      String?      // Skills/Expertise
-  department  String?      // Department
-  phone       String?      // Contact phone
-  email       String?      // Contact email
-  maxProjects Int          @default(3) // Maximum concurrent projects
-  hourlyRate  Float?       // Hourly rate for cost tracking
-  createdBy   String       // Who added this person
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  type        ResourceType
 
   // Relations
-  user        User               @relation("ResourceUser", fields: [userId], references: [id], onDelete: Cascade)
-  creator     User               @relation("ResourceCreator", fields: [createdBy], references: [id])
-  allocations ResourceAllocation[]
+  user User @relation("UserResource", fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("tbl_resources")
 }
 
 model ResourceAllocation {
-  id         String   @id @default(cuid())
-  resourceId String   // Person being allocated
-  projectId  String
-  taskId     String?  // Optional: allocate to specific task
-  role       String?  // Role in this project/task (e.g., "Lead Developer", "Site Supervisor")
-  allocationPercentage Int @default(100) // Percentage of time allocated (100% = full time)
-  startDate  DateTime @default(now())
-  endDate    DateTime? // When allocation ends
-  status     AllocationStatus @default(ACTIVE)
-  notes      String?  // Additional notes about the allocation
-  allocatedAt DateTime @default(now())
-  allocatedBy String  // Who made this allocation
-
-  // Relations
-  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
-  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  task       Task?    @relation("TaskResourceAllocations", fields: [taskId], references: [id], onDelete: SetNull)
-  allocator  User     @relation("ResourceAllocator", fields: [allocatedBy], references: [id])
+  id                   String           @id @default(cuid())
+  resourceId           String
+  projectId            String
+  allocatedAt          DateTime         @default(now())
+  taskId               String?
+  startDate            DateTime         @default(now())
+  endDate              DateTime?
+  status               AllocationStatus @default(ACTIVE)
+  notes                String?
+  allocatedBy          String
+  role                 String?
+  allocationPercentage Int              @default(100)
 
   @@map("tbl_resource_allocations")
 }
 
-// Budget & Financials
 model Budget {
-  id               String    @id @default(cuid())
-  costCenter       String    @map("cost_center") // Cost Center
-  manager          String    // Manager
-  prkNumber        String    @map("prk_number") // PRK Number
-  prkName          String    @map("prk_name") // PRK Name
-  kategoriBeban    String    @map("kategori_beban") // Kategori Beban (Expense Category)
-  coaNumber        String    @map("coa_number") // COA Number (Chart of Accounts)
-  anggaranTersedia Decimal   @map("anggaran_tersedia") // Anggaran Tersedia (Available Budget)
-  nilaiPo          Decimal   @default(0) @map("nilai_po") // Nilai PO (PO Value)
-  nilaiNonPo       Decimal   @default(0) @map("nilai_non_po") // Nilai Non PO (Non-PO Value)
-  totalSpr         Decimal   @default(0) @map("total_spr") // Total SPR
-  totalPenyerapan  Decimal   @default(0) @map("total_penyerapan") // Total Penyerapan (Total Absorption)
-  sisaAnggaran     Decimal   @default(0) @map("sisa_anggaran") // Sisa Anggaran (Remaining Budget)
-  tahun            Int       // Tahun (Year)
-  projectId        String?   @map("project_id") // Optional link to projects
-  taskId           String?   @map("task_id") // Optional link to tasks
-  budgetType       BudgetType @default(PROJECT) @map("budget_type") // Type of budget allocation
-  createdAt        DateTime  @default(now()) @map("created_at")
-  updatedAt        DateTime  @updatedAt @map("updated_at")
-
-  // Relations
-  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  task    Task?    @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  id               String     @id @default(cuid())
+  costCenter       String     @map("cost_center")
+  manager          String
+  prkNumber        String     @map("prk_number")
+  prkName          String     @map("prk_name")
+  kategoriBeban    String     @map("kategori_beban")
+  coaNumber        String     @map("coa_number")
+  anggaranTersedia Decimal    @map("anggaran_tersedia")
+  nilaiPo          Decimal    @default(0) @map("nilai_po")
+  nilaiNonPo       Decimal    @default(0) @map("nilai_non_po")
+  totalSpr         Decimal    @default(0) @map("total_spr")
+  totalPenyerapan  Decimal    @default(0) @map("total_penyerapan")
+  sisaAnggaran     Decimal    @default(0) @map("sisa_anggaran")
+  tahun            Int
+  projectId        String?    @map("project_id")
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
+  taskId           String?    @map("task_id")
+  budgetType       BudgetType @default(PROJECT) @map("budget_type")
 
   @@map("tbl_budgets")
 }
 
-// Risk & Issue Tracking
-model Risk {
-  id          String     @id @default(cuid())
-  title       String
-  description String?
-  projectId   String
-  severity    RiskLevel
-  status      RiskStatus @default(OPEN)
-  mitigation  String?
-  assigneeId  String?
-  identifiedAt DateTime @default(now())
-  resolvedAt  DateTime?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-
-  // Relations
-  project  Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  assignee User?   @relation("RiskAssignee", fields: [assigneeId], references: [id])
-
-  @@map("tbl_risks")
-}
-
-// Document Management
 model Document {
-  id          String       @id @default(cuid())
+  id          String   @id @default(cuid())
   title       String
   description String?
   fileName    String
@@ -276,95 +306,122 @@ model Document {
   projectId   String?
   taskId      String?
   uploadedBy  String
-  isPublic    Boolean      @default(false)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-
-  // Relations
-  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  task      Task?    @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  uploader  User     @relation(fields: [uploadedBy], references: [id])
+  isPublic    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@map("tbl_documents")
 }
 
-// Activity Log / Audit Trail
 model ActivityLog {
-  id          String       @id @default(cuid())
+  id          String   @id @default(cuid())
   action      String
   entity      String
   entityId    String
   description String?
   userId      String
   metadata    Json?
-  createdAt   DateTime     @default(now())
-
-  // Relations
-  user    User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
 
   @@map("tbl_activity_logs")
 }
 
-// Product Lifecycle Management
 model Product {
-  id            String   @id @default(cuid())
-  produk        String   // Product name
-  deskripsi     String?  // Product description
-  id_kategori   String   // Category ID
-  id_segmen     String   // Segment ID
-  id_stage      String   // Stage ID
-  harga         String?  // Price
-  tanggal_launch String? // Launch date
-  pelanggan     String?  // Customer
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  id             String   @id @default(cuid())
+  produk         String
+  deskripsi      String?
+  id_kategori    String
+  id_segmen      String
+  id_stage       String
+  harga          String?
+  tanggal_launch String?
+  pelanggan      String?
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
 
   // Relations
-  kategori      Category @relation(fields: [id_kategori], references: [id])
-  segmen        Segment  @relation(fields: [id_segmen], references: [id])
-  stage         Stage    @relation(fields: [id_stage], references: [id])
+  kategori       Category @relation(fields: [id_kategori], references: [id])
+  segmen         Segment  @relation(fields: [id_segmen], references: [id])
+  stage          Stage    @relation(fields: [id_stage], references: [id])
 
   @@map("tbl_produk")
 }
 
 model Category {
-  id        String   @id @default(cuid())
-  kategori  String   @unique // Category name
+  id         String   @id @default(cuid())
+  kategori   String   @unique
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
   // Relations
-  products  Product[]
+  products    Product[]
 
   @@map("tbl_kategori")
 }
 
 model Segment {
-  id        String   @id @default(cuid())
-  segmen    String   @unique // Segment name
+  id         String   @id @default(cuid())
+  segmen     String   @unique
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
   // Relations
-  products  Product[]
+  products    Product[]
 
   @@map("tbl_segmen")
 }
 
 model Stage {
-  id        String   @id @default(cuid())
-  stage     String   @unique // Stage name
+  id         String   @id @default(cuid())
+  stage      String   @unique
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
   // Relations
-  products  Product[]
+  products    Product[]
 
   @@map("tbl_stage")
 }
 
+model MonitoringLicense {
+  id                      String    @id
+  no_urut                 Int?
+  nama_aplikasi           String
+  bpo                     String?
+  jenis_lisensi           String?
+  jumlah                  Int?
+  harga_satuan            Decimal?  @default(0)
+  harga_total             Decimal?  @default(0)
+  periode_po              Int?
+  kontrak_layanan_bulan   Int?
+  start_layanan           DateTime?
+  akhir_layanan           DateTime?
+  metode                  String?
+  keterangan_akun         String?
+  tanggal_aktivasi        DateTime?
+  tanggal_pembaharuan     DateTime?
+  status                  String    @default("Active")
+  created_at              DateTime?
+  updated_at              DateTime?
+  selling_price           Decimal?  @default(0)
+  purchase_price_per_unit Decimal?  @default(0)
+  total_purchase_price    Decimal?  @default(0)
+  total_selling_price     Decimal?  @default(0)
 
-// Enums
+  @@map("tbl_mon_licenses")
+}
+
+model LicenseNotification {
+  id                String    @id
+  license_id        String?
+  notification_type String
+  notification_date DateTime
+  is_sent           Boolean   @default(false)
+  sent_at           DateTime?
+  created_at        DateTime?
+
+  @@map("tbl_license_notifications")
+}
 
 enum ProjectStatus {
   PLANNING
@@ -436,106 +493,4 @@ enum BudgetType {
   PROJECT
   TASK
   GENERAL
-}
-
-// Lifecycle tables (synced from lifecycle_db)
-model ProductLifecycle {
-  id                Int      @id
-  produk            String?
-  deskripsi         String?
-  id_kategori       Int?
-  id_segmen         Int?
-  id_stage          Int?
-  harga             BigInt?
-  tanggal_launch    DateTime?
-  pelanggan         String?
-  created_at        DateTime?
-  updated_at        DateTime?
-  tanggal_stage_end DateTime?
-  tanggal_stage_start DateTime?
-
-  @@map("tbl_produk_lifecycle")
-}
-
-model SegmentLifecycle {
-  id         Int      @id
-  segmen     String
-  created_at DateTime?
-  updated_at DateTime?
-  icon_light String?
-  icon_dark  String?
-
-  @@map("tbl_segmen_lifecycle")
-}
-
-model StageLifecycle {
-  id         Int      @id
-  stage      String?
-  created_at DateTime?
-  updated_at DateTime?
-  icon_light String?
-  icon_dark  String?
-
-  @@map("tbl_stage_lifecycle")
-}
-
-model StageHistoriLifecycle {
-  id                  Int      @id
-  id_produk           Int
-  stage_previous      Int?
-  stage_now           Int?
-  catatan             String?
-  created_at          DateTime?
-  updated_at          DateTime?
-  tanggal_perubahan   DateTime?
-  performance_metrics Json?
-
-  @@map("tbl_stage_histori_lifecycle")
-}
-
-// Monitoring License tables (synced from lifecycle_db)
-model MonitoringLicense {
-  id                      Int      @id
-  no_urut                 Int?
-  nama_aplikasi           String
-  bpo                     String?
-  jenis_lisensi           String?
-  jumlah                  Int?
-  harga_satuan            Decimal? @default(0)
-  harga_total             Decimal? @default(0)
-  periode_po              Int?
-  kontrak_layanan_bulan   Int?
-  start_layanan           DateTime?
-  akhir_layanan           DateTime?
-  metode                  String?
-  keterangan_akun         String?
-  tanggal_aktivasi        DateTime?
-  tanggal_pembaharuan     DateTime?
-  status                  String   @default("Active")
-  created_at              DateTime?
-  updated_at              DateTime?
-  selling_price           Decimal? @default(0)
-  purchase_price_per_unit Decimal? @default(0)
-  total_purchase_price    Decimal? @default(0)
-  total_selling_price     Decimal? @default(0)
-
-  // Relations
-  notifications LicenseNotification[]
-
-  @@map("tbl_mon_licenses")
-}
-
-model LicenseNotification {
-  id                Int      @id
-  license_id        Int?
-  notification_type String
-  notification_date DateTime
-  is_sent           Boolean  @default(false)
-  sent_at           DateTime?
-  created_at        DateTime?
-
-  // Relations
-  license MonitoringLicense? @relation(fields: [license_id], references: [id], onDelete: Cascade)
-
-  @@map("tbl_license_notifications")
 }

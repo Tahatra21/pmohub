@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Bell, BellRing } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,6 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import { Notification } from '@/lib/notifications';
 
 export default function NotificationBell() {
+  const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
@@ -28,7 +30,7 @@ export default function NotificationBell() {
 
   const fetchNotifications = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch('/api/notifications?limit=10', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -47,8 +49,8 @@ export default function NotificationBell() {
 
   const handleMarkAsRead = async (notificationId: string) => {
     try {
-      const token = localStorage.getItem('token');
-      await fetch('/api/notifications', {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/notifications', {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -59,7 +61,18 @@ export default function NotificationBell() {
           notificationId,
         }),
       });
-      fetchNotifications();
+
+      if (response.ok) {
+        // Update local state immediately
+        setNotifications(prev => 
+          prev.map(notif => 
+            notif.id === notificationId 
+              ? { ...notif, read: true }
+              : notif
+          )
+        );
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      }
     } catch (error) {
       console.error('Error marking notification as read:', error);
     }
@@ -68,8 +81,8 @@ export default function NotificationBell() {
   const handleMarkAllAsRead = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      await fetch('/api/notifications', {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/notifications', {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -79,7 +92,14 @@ export default function NotificationBell() {
           action: 'markAllAsRead',
         }),
       });
-      fetchNotifications();
+
+      if (response.ok) {
+        // Update local state immediately
+        setNotifications(prev => 
+          prev.map(notif => ({ ...notif, read: true }))
+        );
+        setUnreadCount(0);
+      }
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
     } finally {
@@ -176,7 +196,7 @@ export default function NotificationBell() {
                       handleMarkAsRead(notification.id);
                     }
                     if (notification.actionUrl) {
-                      window.location.href = notification.actionUrl;
+                      router.push(notification.actionUrl);
                     }
                   }}
                 >
@@ -222,7 +242,7 @@ export default function NotificationBell() {
               className="w-full text-xs"
               onClick={() => {
                 // Navigate to full notifications page
-                window.location.href = '/activity';
+                router.push('/activity');
               }}
             >
               View all notifications

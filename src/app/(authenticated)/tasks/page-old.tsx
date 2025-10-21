@@ -59,7 +59,7 @@ export default function EntityPage() {
   const fetchEntities = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const params = new URLSearchParams({
@@ -88,7 +88,7 @@ export default function EntityPage() {
 
   const handleCreateEntity = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const response = await fetch('/api/tasks', {
@@ -119,7 +119,7 @@ export default function EntityPage() {
     if (!editingEntity) return;
     
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const response = await fetch('/api/tasks', {
@@ -155,7 +155,7 @@ export default function EntityPage() {
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) return;
 
       const response = await fetch(`/api/tasks?id=${entityId}`, {

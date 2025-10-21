@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key');
+// Use the same JWT secret as auth.ts
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || 
+  'pmo-production-secret-key-2024-fixed-secret-key-for-consistency'
+);
 
 export async function middleware(request: NextRequest) {
   const token = request.headers.get('Authorization')?.replace('Bearer ', '');
@@ -23,7 +27,10 @@ export async function middleware(request: NextRequest) {
     }
 
     try {
+      console.log('Middleware: Verifying token...');
       const { payload } = await jwtVerify(token, JWT_SECRET);
+      console.log('Middleware: Token verified successfully');
+      
       const requestHeaders = new Headers(request.headers);
       requestHeaders.set('user', JSON.stringify(payload));
 
@@ -33,6 +40,7 @@ export async function middleware(request: NextRequest) {
         },
       });
     } catch (error) {
+      console.error('Middleware: Token verification failed:', error);
       return NextResponse.json(
         { success: false, error: 'Invalid token' },
         { status: 401 }
