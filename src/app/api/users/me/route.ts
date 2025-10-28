@@ -31,8 +31,7 @@ export async function GET(request: NextRequest) {
     const userProfile = await db.user.findUnique({
       where: { id: user.id },
       include: { 
-        role: true,
-        resource: true
+        role: true
       },
     });
 
@@ -56,21 +55,6 @@ export async function GET(request: NextRequest) {
           name: userProfile.role.name,
           description: userProfile.role.description,
         },
-        resource: userProfile.resource ? {
-          id: userProfile.resource.id,
-          name: userProfile.resource.name,
-          description: userProfile.resource.description,
-          skills: userProfile.resource.skills,
-          department: userProfile.resource.department,
-          phone: userProfile.resource.phone,
-          email: userProfile.resource.email,
-          maxProjects: userProfile.resource.maxProjects,
-          hourlyRate: userProfile.resource.hourlyRate,
-          status: userProfile.resource.status,
-          type: userProfile.resource.type,
-          createdAt: userProfile.resource.createdAt.toISOString(),
-          updatedAt: userProfile.resource.updatedAt.toISOString(),
-        } : null,
         isActive: userProfile.isActive,
         createdAt: userProfile.createdAt.toISOString(),
         updatedAt: userProfile.updatedAt.toISOString(),

@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { 
   Database, 
   Download, 
@@ -43,99 +44,307 @@ interface DatabaseConnection {
   database: string;
   status: 'connected' | 'disconnected' | 'error';
   lastChecked: string;
+  version?: string;
+  size?: string;
 }
 
 interface BackupJob {
   id: string;
   name: string;
-  schedule: string;
-  lastRun: string;
-  status: 'success' | 'failed' | 'running' | 'scheduled';
   size: string;
-  nextRun: string;
+  createdAt: string;
+  modifiedAt: string;
 }
 
-// Real data based on actual PMO database
-const mockConnections: DatabaseConnection[] = [
-  {
-    id: '1',
-    name: 'PMO Database (pmo_db)',
-    host: 'localhost',
-    port: 5432,
-    database: 'pmo_db',
-    status: 'connected',
-    lastChecked: new Date().toLocaleString()
-  }
-];
+interface SchedulerJob {
+  id: string;
+  name: string;
+  schedule: string;
+  isActive: boolean;
+  lastRun?: string;
+  nextRun?: string;
+  status: 'active' | 'paused' | 'error';
+}
 
-const mockBackups: BackupJob[] = [
-  {
-    id: '1',
-    name: 'Daily Full Backup - pmo_db',
-    schedule: 'Daily at 02:00',
-    lastRun: '2024-01-15 02:00:00',
-    status: 'success',
-    size: '8.4 MB', // Actual database size: 8627 kB ≈ 8.4 MB
-    nextRun: '2024-01-16 02:00:00'
-  },
-  {
-    id: '2',
-    name: 'Weekly Archive - pmo_db',
-    schedule: 'Weekly on Sunday',
-    lastRun: '2024-01-14 03:00:00',
-    status: 'success',
-    size: '8.4 MB', // Same as daily since it's the same database
-    nextRun: '2024-01-21 03:00:00'
-  },
-  {
-    id: '3',
-    name: 'Incremental Backup - pmo_db',
-    schedule: 'Every 6 hours',
-    lastRun: '2024-01-15 12:00:00',
-    status: 'running',
-    size: '2.1 MB', // Estimated incremental size
-    nextRun: '2024-01-15 18:00:00'
-  }
-];
+interface SchedulerStatus {
+  isActive: boolean;
+  activeJobs: number;
+  totalJobs: number;
+  lastBackup?: string;
+  nextBackup?: string;
+}
+
 
 export default function DatabasePage() {
   const router = useRouter();
-  const [connections, setConnections] = useState<DatabaseConnection[]>(mockConnections);
-  const [backups, setBackups] = useState<BackupJob[]>(mockBackups);
+  const [connections, setConnections] = useState<DatabaseConnection[]>([]);
+  const [backups, setBackups] = useState<BackupJob[]>([]);
+  const [schedulerJobs, setSchedulerJobs] = useState<SchedulerJob[]>([]);
+  const [schedulerStatus, setSchedulerStatus] = useState<SchedulerStatus | null>(null);
   const [autoBackup, setAutoBackup] = useState(true);
   const [compression, setCompression] = useState(true);
   const [retentionDays, setRetentionDays] = useState(30);
   const [isBackingUp, setIsBackingUp] = useState(false);
   const [backupProgress, setBackupProgress] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  // Load data from API
+  useEffect(() => {
+    loadDatabaseStatus();
+    loadBackups();
+    loadScheduler();
+  }, []);
+
+  const loadScheduler = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) return;
+
+      const response = await fetch('/api/database/scheduler', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setSchedulerStatus(data.data.status);
+          setSchedulerJobs(data.data.jobs);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading scheduler:', error);
+    }
+  };
+
+  const loadDatabaseStatus = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) return;
+
+      const response = await fetch('/api/database/status', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setConnections([data.data.connection]);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading database status:', error);
+    }
+  };
+
+  const loadBackups = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) return;
+
+      const response = await fetch('/api/database/backup', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setBackups(data.data.backups);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading backups:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleTestConnection = async (connectionId: string) => {
-    // Simulate connection test
-    setConnections(prev => prev.map(conn => 
-      conn.id === connectionId 
-        ? { ...conn, status: 'connected', lastChecked: new Date().toLocaleString() }
-        : conn
-    ));
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) return;
+
+      const response = await fetch('/api/database/status', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setConnections([data.data.connection]);
+          toast.success('Connection test successful');
+        }
+      }
+    } catch (error) {
+      console.error('Error testing connection:', error);
+      toast.error('Connection test failed');
+    }
   };
 
   const handleStartBackup = async () => {
-    setIsBackingUp(true);
-    setBackupProgress(0);
-    
-    // Simulate backup process
-    const interval = setInterval(() => {
-      setBackupProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsBackingUp(false);
-          return 100;
-        }
-        return prev + 10;
+    try {
+      setIsBackingUp(true);
+      setBackupProgress(0);
+      
+      const token = localStorage.getItem('auth_token');
+      if (!token) return;
+
+      // Simulate progress
+      const progressInterval = setInterval(() => {
+        setBackupProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 200);
+
+      const response = await fetch('/api/database/backup', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: `pmo_db_backup_${new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-')}`,
+          type: 'full'
+        }),
       });
-    }, 200);
+
+      clearInterval(progressInterval);
+      setBackupProgress(100);
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          toast.success('Backup created successfully');
+          // Reload backups
+          await loadBackups();
+        } else {
+          toast.error(data.error || 'Backup failed');
+        }
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Backup failed');
+      }
+    } catch (error) {
+      console.error('Error creating backup:', error);
+      toast.error('Failed to create backup');
+    } finally {
+      setIsBackingUp(false);
+      setBackupProgress(0);
+    }
   };
 
-  const handleDeleteBackup = (backupId: string) => {
-    setBackups(prev => prev.filter(backup => backup.id !== backupId));
+  const handleDeleteBackup = async (backupId: string) => {
+    if (!confirm(`Are you sure you want to delete backup "${backupId}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) return;
+
+      const response = await fetch(`/api/database/backup/delete?id=${backupId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          toast.success('Backup deleted successfully');
+          // Reload backups
+          await loadBackups();
+        } else {
+          toast.error(data.error || 'Delete failed');
+        }
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Delete failed');
+      }
+    } catch (error) {
+      console.error('Error deleting backup:', error);
+      toast.error('Failed to delete backup');
+    }
+  };
+
+  const handleDownloadBackup = async (backupId: string) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) return;
+
+      const response = await fetch(`/api/database/backup/download?id=${backupId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = backupId;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        toast.success('Backup downloaded successfully');
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Download failed');
+      }
+    } catch (error) {
+      console.error('Error downloading backup:', error);
+      toast.error('Failed to download backup');
+    }
+  };
+
+  const handleToggleSchedulerJob = async (jobId: string) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) return;
+
+      const response = await fetch('/api/database/scheduler', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'toggle',
+          jobId: jobId
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          toast.success(data.data.isActive ? 'Scheduler job enabled' : 'Scheduler job disabled');
+          // Reload scheduler
+          await loadScheduler();
+        } else {
+          toast.error(data.error || 'Failed to toggle scheduler job');
+        }
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Failed to toggle scheduler job');
+      }
+    } catch (error) {
+      console.error('Error toggling scheduler job:', error);
+      toast.error('Failed to toggle scheduler job');
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -181,6 +390,37 @@ export default function DatabasePage() {
     const size = parseFloat(backup.size.replace(/[^\d.]/g, ''));
     return acc + size;
   }, 0);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => router.push('/settings')}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Settings
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+                <Database className="h-8 w-8 text-blue-600" />
+                Database Management
+              </h1>
+              <p className="text-gray-500">Manage database connections and backups</p>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center justify-center py-8">
+          <RefreshCw className="h-6 w-6 animate-spin" />
+          <span className="ml-2">Loading database information...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -367,6 +607,77 @@ export default function DatabasePage() {
           </CardContent>
         </Card>
 
+        {/* Backup Scheduler */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              Backup Scheduler
+            </CardTitle>
+            <CardDescription>
+              Manage automatic backup schedules
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {schedulerStatus && (
+              <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {schedulerStatus.activeJobs}/{schedulerStatus.totalJobs}
+                  </div>
+                  <div className="text-sm text-gray-500">Active Jobs</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">
+                    {schedulerStatus.isActive ? 'ON' : 'OFF'}
+                  </div>
+                  <div className="text-sm text-gray-500">Scheduler Status</div>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <h4 className="font-medium">Scheduled Jobs</h4>
+              {schedulerJobs.map((job) => (
+                <div key={job.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex-1">
+                    <div className="font-medium">{job.name}</div>
+                    <div className="text-sm text-gray-500">
+                      Schedule: {job.schedule} 
+                      {job.lastRun && (
+                        <span className="ml-2">
+                          • Last run: {new Date(job.lastRun).toLocaleString()}
+                        </span>
+                      )}
+                      {job.nextRun && (
+                        <span className="ml-2">
+                          • Next run: {new Date(job.nextRun).toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={job.status === 'active' ? 'default' : 'secondary'}>
+                      {job.status}
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleToggleSchedulerJob(job.id)}
+                    >
+                      {job.isActive ? (
+                        <Pause className="h-4 w-4" />
+                      ) : (
+                        <Play className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Backup History */}
         <Card className="lg:col-span-2">
           <CardHeader>
@@ -383,48 +694,58 @@ export default function DatabasePage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Backup Name</TableHead>
-                  <TableHead>Schedule</TableHead>
-                  <TableHead>Last Run</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead>Modified</TableHead>
                   <TableHead>Size</TableHead>
-                  <TableHead>Next Run</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {backups.map((backup) => (
-                  <TableRow key={backup.id}>
-                    <TableCell className="font-medium">{backup.name}</TableCell>
-                    <TableCell className="text-sm text-gray-500">{backup.schedule}</TableCell>
-                    <TableCell className="text-sm text-gray-500">{backup.lastRun}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(backup.status)}
-                        {getStatusBadge(backup.status)}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-sm">{backup.size}</TableCell>
-                    <TableCell className="text-sm text-gray-500">{backup.nextRun}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="sm">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <Download className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleDeleteBackup(backup.id)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                {backups.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8">
+                      <div className="flex flex-col items-center gap-2">
+                        <Database className="h-8 w-8 text-gray-400" />
+                        <p className="text-gray-500">No backups found</p>
+                        <p className="text-sm text-gray-400">Create your first backup to get started</p>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  backups.map((backup) => (
+                    <TableRow key={backup.id}>
+                      <TableCell className="font-medium">{backup.name}</TableCell>
+                      <TableCell className="text-sm text-gray-500">
+                        {new Date(backup.createdAt).toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-sm text-gray-500">
+                        {new Date(backup.modifiedAt).toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-sm">{backup.size}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleDownloadBackup(backup.id)}
+                            title="Download backup"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleDeleteBackup(backup.id)}
+                            className="text-red-600 hover:text-red-700"
+                            title="Delete backup"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </CardContent>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   FileText, 
@@ -191,7 +191,7 @@ export default function SettingsPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-blue-100 rounded-lg">
-                          <item.icon className="h-6 w-6 text-blue-600" />
+                          {React.createElement(item.icon, { className: "h-6 w-6 text-blue-600" })}
                         </div>
                         <div className="flex-1">
                           <h3 className="font-semibold text-gray-900">{item.name}</h3>

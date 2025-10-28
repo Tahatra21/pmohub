@@ -223,7 +223,7 @@ export default function SOLARLandscapeLogin() {
               </div>
 
               <p className="text-lg text-blue-100 mb-8 max-w-xl">
-                Platform terintegrasi untuk mengelola Solar Energy Projects & Resources dengan teknologi terdepan
+                Platform terintegrasi untuk mengelola Solar Projects & Resources dengan teknologi terdepan
               </p>
 
               {/* Products Grid */}

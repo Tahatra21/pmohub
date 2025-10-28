@@ -40,6 +40,14 @@ export interface Project {
   resources?: Resource[];
   budgets?: Budget[];
   documents?: Document[];
+  // Timeline tracking fields
+  timelineStatus?: TimelineStatus;
+  timelineUpdatedAt?: Date;
+  riskLevel?: RiskLevel;
+  delayDays?: number;
+  warningThreshold?: number;
+  daysRemaining?: number;
+  progressPercentage?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -73,6 +81,14 @@ export interface Task {
   dependencies?: TaskDependency[];
   dependents?: TaskDependency[];
   documents?: Document[];
+  // Timeline tracking fields
+  timelineStatus?: TimelineStatus;
+  timelineUpdatedAt?: Date;
+  riskLevel?: RiskLevel;
+  delayDays?: number;
+  warningThreshold?: number;
+  daysRemaining?: number;
+  progressPercentage?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -220,8 +236,21 @@ export enum MilestoneStatus {
 export enum Priority {
   LOW = 'LOW',
   MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH'
+}
+
+export enum TimelineStatus {
+  ON_TIME = 'ON_TIME',
+  AT_RISK = 'AT_RISK',
+  DELAYED = 'DELAYED',
+  AHEAD = 'AHEAD'
+}
+
+export enum RiskLevel {
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
   HIGH = 'HIGH',
-  URGENT = 'URGENT'
+  CRITICAL = 'CRITICAL'
 }
 
 export enum ResourceType {

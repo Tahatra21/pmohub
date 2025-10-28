@@ -29,7 +29,13 @@ import {
   MoreHorizontal, 
   Edit,
   Trash2,
-  Eye
+  Eye,
+  Download,
+  ArrowLeft,
+  FileText,
+  FileSpreadsheet,
+  FileImage,
+  File as FileIcon
 } from 'lucide-react';
 import { 
   DropdownMenu, 
@@ -38,25 +44,69 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 
-interface Entity {
+interface Document {
   id: string;
-  [key: string]: any;
+  title: string;
+  description?: string;
+  fileName: string;
+  filePath: string;
+  fileSize: number;
+  fileType: string;
+  projectId?: string;
+  taskId?: string;
+  uploadedBy: string;
+  isPublic: boolean;
+  createdAt: string;
+  updatedAt: string;
+  project?: {
+    id: string;
+    name: string;
+    type: string;
+  };
+  task?: {
+    id: string;
+    title: string;
+  };
+  uploader?: {
+    id: string;
+    name: string;
+    email: string;
+  };
 }
 
-export default function EntityPage() {
-  const [entities, setEntities] = useState<Entity[]>([]);
+interface Project {
+  id: string;
+  name: string;
+}
+
+export default function DocumentsPage() {
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All Categories');
+  const [selectedProject, setSelectedProject] = useState('All Projects');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingEntity, setEditingEntity] = useState<Entity | null>(null);
-  const [createForm, setCreateForm] = useState({});
+  const [editingDocument, setEditingDocument] = useState<Document | null>(null);
+  const [createForm, setCreateForm] = useState({
+    title: '',
+    description: '',
+    fileName: '',
+    filePath: '',
+    fileSize: 0,
+    fileType: '',
+    projectId: '',
+    taskId: '',
+    isPublic: false,
+  });
 
   useEffect(() => {
-    fetchEntities();
-  }, [searchTerm]);
+    fetchDocuments();
+    fetchProjects();
+  }, [searchTerm, selectedCategory, selectedProject]);
 
-  const fetchEntities = async () => {
+  const fetchDocuments = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('auth_token');
@@ -66,6 +116,8 @@ export default function EntityPage() {
         page: '1',
         limit: '50',
         ...(searchTerm && { search: searchTerm }),
+        ...(selectedProject !== 'All Projects' && { projectId: selectedProject }),
+        ...(selectedCategory !== 'All Categories' && { fileType: selectedCategory }),
       });
 
       const response = await fetch(`/api/documents?${params}`, {
@@ -76,17 +128,37 @@ export default function EntityPage() {
 
       if (response.ok) {
         const data = await response.json();
-        setEntities(data.data.documents || []);
+        setDocuments(data.data.documents || []);
       }
     } catch (error) {
-      console.error('Error fetching entities:', error);
-      toast.error('Failed to fetch entities');
+      console.error('Error fetching documents:', error);
+      toast.error('Failed to fetch documents');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCreateEntity = async () => {
+  const fetchProjects = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) return;
+
+      const response = await fetch('/api/projects', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setProjects(data.data.projects || []);
+      }
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+    }
+  };
+
+  const handleCreateDocument = async () => {
     try {
       const token = localStorage.getItem('auth_token');
       if (!token) return;
@@ -101,56 +173,32 @@ export default function EntityPage() {
       });
 
       if (response.ok) {
-        toast.success('Entity created successfully!');
+        toast.success('Document uploaded successfully!');
         setIsCreateDialogOpen(false);
-        setCreateForm({});
-        fetchEntities();
+        setCreateForm({
+          title: '',
+          description: '',
+          fileName: '',
+          filePath: '',
+          fileSize: 0,
+          fileType: '',
+          projectId: '',
+          taskId: '',
+          isPublic: false,
+        });
+        fetchDocuments();
       } else {
         const error = await response.json();
-        toast.error(error.error || 'Failed to create entity');
+        toast.error(error.error || 'Failed to upload document');
       }
     } catch (error) {
-      console.error('Error creating entity:', error);
-      toast.error('Failed to create entity');
+      console.error('Error creating document:', error);
+      toast.error('Failed to upload document');
     }
   };
 
-  const handleEditEntity = async () => {
-    if (!editingEntity) return;
-    
-    try {
-      const token = localStorage.getItem('auth_token');
-      if (!token) return;
-
-      const response = await fetch('/api/documents', {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          id: editingEntity.id,
-          ...createForm
-        }),
-      });
-
-      if (response.ok) {
-        toast.success('Entity updated successfully!');
-        setIsEditDialogOpen(false);
-        setEditingEntity(null);
-        fetchEntities();
-      } else {
-        const error = await response.json();
-        toast.error(error.error || 'Failed to update entity');
-      }
-    } catch (error) {
-      console.error('Error updating entity:', error);
-      toast.error('Failed to update entity');
-    }
-  };
-
-  const handleDeleteEntity = async (entityId: string, entityName: string) => {
-    if (!confirm(`Are you sure you want to delete "${entityName}"? This action cannot be undone.`)) {
+  const handleDeleteDocument = async (documentId: string, documentTitle: string) => {
+    if (!confirm(`Are you sure you want to delete "${documentTitle}"? This action cannot be undone.`)) {
       return;
     }
 
@@ -158,7 +206,7 @@ export default function EntityPage() {
       const token = localStorage.getItem('auth_token');
       if (!token) return;
 
-      const response = await fetch(`/api/documents?id=${entityId}`, {
+      const response = await fetch(`/api/documents?id=${documentId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -166,22 +214,42 @@ export default function EntityPage() {
       });
 
       if (response.ok) {
-        toast.success('Entity deleted successfully!');
-        fetchEntities();
+        toast.success('Document deleted successfully!');
+        fetchDocuments();
       } else {
         const error = await response.json();
-        toast.error(error.error || 'Failed to delete entity');
+        toast.error(error.error || 'Failed to delete document');
       }
     } catch (error) {
-      console.error('Error deleting entity:', error);
-      toast.error('Failed to delete entity');
+      console.error('Error deleting document:', error);
+      toast.error('Failed to delete document');
     }
   };
 
-  const openEditDialog = (entity: Entity) => {
-    setEditingEntity(entity);
-    setCreateForm(entity);
-    setIsEditDialogOpen(true);
+  const getFileIcon = (fileType: string) => {
+    const type = fileType.toLowerCase();
+    if (type.includes('pdf')) return <FileIcon className="h-4 w-4 text-red-500" />;
+    if (type.includes('doc') || type.includes('docx')) return <FileText className="h-4 w-4 text-blue-500" />;
+    if (type.includes('xls') || type.includes('xlsx')) return <FileSpreadsheet className="h-4 w-4 text-green-500" />;
+    if (type.includes('jpg') || type.includes('jpeg') || type.includes('png')) return <FileImage className="h-4 w-4 text-purple-500" />;
+    return <FileText className="h-4 w-4 text-gray-500" />;
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const getCategoryBadgeColor = (category: string) => {
+    switch (category.toLowerCase()) {
+      case 'proposal': return 'bg-blue-100 text-blue-800';
+      case 'technical': return 'bg-green-100 text-green-800';
+      case 'financial': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
   };
 
   if (loading) {
@@ -189,7 +257,7 @@ export default function EntityPage() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Loading...</p>
+          <p className="mt-2 text-muted-foreground">Loading documents...</p>
         </div>
       </div>
     );
@@ -197,35 +265,45 @@ export default function EntityPage() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">documents_TITLE</h1>
-          <p className="text-muted-foreground">
-            Manage your documents_ENTITIES
-          </p>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="sm" className="p-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Settings
+          </Button>
+          <div className="text-center">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="h-6 w-6 text-primary" />
+              <h1 className="text-3xl font-bold tracking-tight">Documents</h1>
+            </div>
+            <p className="text-muted-foreground">
+              Manage project documents and files
+            </p>
+          </div>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="bg-black text-white hover:bg-gray-800">
               <Plus className="h-4 w-4 mr-2" />
-              Add New
+              Upload Document
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Create New documents_ENTITY</DialogTitle>
+              <DialogTitle>Upload New Document</DialogTitle>
               <DialogDescription>
-                Add a new documents_ENTITY to your system.
+                Upload a new document to your project.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="title">Document Title</Label>
                 <Input 
-                  id="name" 
-                  placeholder="Enter name"
-                  value={createForm.name || ''}
-                  onChange={(e) => setCreateForm({...createForm, name: e.target.value})}
+                  id="title" 
+                  placeholder="Enter document title"
+                  value={createForm.title}
+                  onChange={(e) => setCreateForm({...createForm, title: e.target.value})}
                 />
               </div>
               <div className="grid gap-2">
@@ -233,130 +311,192 @@ export default function EntityPage() {
                 <Textarea 
                   id="description" 
                   placeholder="Enter description"
-                  value={createForm.description || ''}
+                  value={createForm.description}
                   onChange={(e) => setCreateForm({...createForm, description: e.target.value})}
                 />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="fileName">File Name</Label>
+                <Input 
+                  id="fileName" 
+                  placeholder="Enter file name"
+                  value={createForm.fileName}
+                  onChange={(e) => setCreateForm({...createForm, fileName: e.target.value})}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="fileType">File Type</Label>
+                <Select value={createForm.fileType} onValueChange={(value) => setCreateForm({...createForm, fileType: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select file type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PDF">PDF</SelectItem>
+                    <SelectItem value="DOCX">DOCX</SelectItem>
+                    <SelectItem value="XLSX">XLSX</SelectItem>
+                    <SelectItem value="JPG">JPG</SelectItem>
+                    <SelectItem value="PNG">PNG</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="projectId">Project</Label>
+                <Select value={createForm.projectId} onValueChange={(value) => setCreateForm({...createForm, projectId: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select project" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No Project</SelectItem>
+                    {projects.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleCreateEntity}>
-                Create
+              <Button onClick={handleCreateDocument}>
+                Upload Document
               </Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* Search */}
+      {/* Search and Filter */}
       <Card>
         <CardContent className="p-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+          <div className="flex items-center gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search documents..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All Categories">All Categories</SelectItem>
+                <SelectItem value="PDF">PDF</SelectItem>
+                <SelectItem value="DOCX">DOCX</SelectItem>
+                <SelectItem value="XLSX">XLSX</SelectItem>
+                <SelectItem value="JPG">JPG</SelectItem>
+                <SelectItem value="PNG">PNG</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={selectedProject} onValueChange={setSelectedProject}>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All Projects">All Projects</SelectItem>
+                {projects.map((project) => (
+                  <SelectItem key={project.id} value={project.id}>
+                    {project.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
 
-      {/* Entities List */}
-      {entities.length > 0 ? (
-        <div className="grid gap-4">
-          {entities.map((entity) => (
-            <Card key={entity.id}>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <h3 className="font-semibold">{entity.name || entity.title || entity.id}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {entity.description || 'No description'}
-                    </p>
+      {/* Documents Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Documents ({documents.length})</CardTitle>
+          <CardDescription>
+            All uploaded documents and files in the system
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {documents.length > 0 ? (
+            <div className="space-y-2">
+              {documents.map((document) => (
+                <div key={document.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                  <div className="flex items-center gap-4 flex-1">
+                    <div className="flex items-center gap-2">
+                      {getFileIcon(document.fileType)}
+                      <div>
+                        <div className="font-medium">{document.title}</div>
+                        <div className="text-sm text-gray-500">{document.fileName}</div>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="text-xs">
+                      {document.fileType}
+                    </Badge>
+                    <div className="text-sm text-gray-500">
+                      {formatFileSize(document.fileSize)}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {document.project?.name || 'No Project'}
+                    </div>
+                    <Badge className={`text-xs ${getCategoryBadgeColor(document.fileType)}`}>
+                      {document.fileType}
+                    </Badge>
+                    <div className="text-sm text-gray-500">
+                      {document.uploader?.name || 'Unknown'}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {new Date(document.createdAt).toLocaleDateString()}
+                    </div>
                   </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => openEditDialog(entity)}>
-                        <Edit className="h-4 w-4 mr-2" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        className="text-destructive"
-                        onClick={() => handleDeleteEntity(entity.id, entity.name || entity.title || entity.id)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="sm">
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm">
+                      <Download className="h-4 w-4" />
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setEditingDocument(document)}>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          className="text-destructive"
+                          onClick={() => handleDeleteDocument(document.id, document.title)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <h3 className="text-lg font-semibold mb-2">No entities found</h3>
-            <p className="text-muted-foreground text-center mb-4">
-              Get started by creating your first entity.
-            </p>
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Entity
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Edit documents_ENTITY</DialogTitle>
-            <DialogDescription>
-              Update entity details below.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="edit-name">Name</Label>
-              <Input 
-                id="edit-name" 
-                placeholder="Enter name"
-                value={createForm.name || ''}
-                onChange={(e) => setCreateForm({...createForm, name: e.target.value})}
-              />
+              ))}
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="edit-description">Description</Label>
-              <Textarea 
-                id="edit-description" 
-                placeholder="Enter description"
-                value={createForm.description || ''}
-                onChange={(e) => setCreateForm({...createForm, description: e.target.value})}
-              />
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12">
+              <FileText className="h-12 w-12 text-gray-400 mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No documents found</h3>
+              <p className="text-muted-foreground text-center mb-4">
+                Get started by uploading your first document.
+              </p>
+              <Button onClick={() => setIsCreateDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Upload Document
+              </Button>
             </div>
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleEditEntity}>
-              Update
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

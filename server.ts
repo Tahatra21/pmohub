@@ -3,6 +3,7 @@ import { setupSocket } from '@/lib/socket';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import next from 'next';
+import backupScheduler from '@/services/backupScheduler';
 
 const dev = process.env.NODE_ENV !== 'production';
 const currentPort = 3000;
@@ -41,6 +42,12 @@ async function createCustomServer() {
     });
 
     setupSocket(io);
+
+    // Initialize backup scheduler
+    console.log('> Initializing backup scheduler...');
+    const schedulerStatus = backupScheduler.getStatus();
+    console.log(`> Backup scheduler initialized: ${schedulerStatus.activeJobs}/${schedulerStatus.totalJobs} jobs active`);
+    console.log(`> Next backup scheduled for: ${schedulerStatus.nextBackup?.toISOString()}`);
 
     // Start the server
     server.listen(currentPort, hostname, () => {

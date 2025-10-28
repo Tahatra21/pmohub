@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyToken, hasPermission } from '@/lib/auth';
+import { apiCache } from '@/lib/cache';
 import { z } from 'zod';
 
 const documentSchema = z.object({
@@ -43,6 +44,15 @@ export async function GET(request: NextRequest) {
     const taskId = searchParams.get('taskId');
     const fileType = searchParams.get('fileType');
 
+    // Create cache key
+    const cacheKey = `documents:${page}:${limit}:${projectId}:${taskId}:${fileType}`;
+    
+    // Check cache first
+    const cachedData = apiCache.get(cacheKey);
+    if (cachedData) {
+      return NextResponse.json(cachedData);
+    }
+
     const skip = (page - 1) * limit;
 
     // Build where clause
@@ -57,41 +67,42 @@ export async function GET(request: NextRequest) {
       where.fileType = fileType;
     }
 
-    const [documents, total] = await Promise.all([
-      db.document.findMany({
-        where,
-        include: {
-          project: {
-            select: {
-              id: true,
-              name: true,
-              type: true,
-            },
-          },
-          task: {
-            select: {
-              id: true,
-              title: true,
-            },
-          },
-          uploader: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        skip,
-        take: limit,
-      }),
-      db.document.count({ where }),
-    ]);
+    // Use optimized view for better performance
+    let whereClause = 'WHERE 1=1';
+    const params: any[] = [];
+    let paramCount = 1;
 
-    return NextResponse.json({
+    if (projectId && projectId !== 'ALL') {
+      whereClause += ` AND project_name = $${paramCount}`;
+      params.push(projectId);
+      paramCount++;
+    }
+    if (taskId && taskId !== 'ALL') {
+      whereClause += ` AND task_title = $${paramCount}`;
+      params.push(taskId);
+      paramCount++;
+    }
+    if (fileType && fileType !== 'ALL') {
+      whereClause += ` AND file_type = $${paramCount}`;
+      params.push(fileType);
+      paramCount++;
+    }
+
+    const documents = await prisma.$queryRawUnsafe(`
+      SELECT * FROM v_document_management 
+      ${whereClause}
+      ORDER BY document_created_at DESC
+      LIMIT $${paramCount} OFFSET $${paramCount + 1}
+    `, ...params, limit, skip);
+
+    const totalResult = await prisma.$queryRawUnsafe(`
+      SELECT COUNT(*) as count FROM v_document_management 
+      ${whereClause}
+    `, ...params);
+    
+    const total = Number((totalResult as any)[0].count);
+
+    const response = {
       success: true,
       data: {
         documents,
@@ -102,7 +113,12 @@ export async function GET(request: NextRequest) {
           pages: Math.ceil(total / limit),
         },
       },
-    });
+    };
+
+    // Cache the response for 2 minutes
+    apiCache.set(cacheKey, response, 120000);
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error('Error fetching documents:', error);
     return NextResponse.json(
@@ -138,31 +154,16 @@ export async function POST(request: NextRequest) {
 
     const document = await db.document.create({
       data: {
-        ...validatedData,
+        title: validatedData.title,
+        description: validatedData.description || '',
+        fileName: validatedData.fileName,
+        filePath: validatedData.filePath,
+        fileSize: validatedData.fileSize,
+        fileType: validatedData.fileType,
+        projectId: validatedData.projectId || null,
+        taskId: validatedData.taskId || null,
         uploadedBy: user.id,
         isPublic: validatedData.isPublic || false,
-      },
-      include: {
-        project: {
-          select: {
-            id: true,
-            name: true,
-            type: true,
-          },
-        },
-        task: {
-          select: {
-            id: true,
-            title: true,
-          },
-        },
-        uploader: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
       },
     });
 
@@ -176,6 +177,9 @@ export async function POST(request: NextRequest) {
         userId: user.id,
       },
     });
+
+    // Clear documents cache
+    apiCache.clear();
 
     return NextResponse.json({
       success: true,
@@ -236,28 +240,6 @@ export async function PUT(request: NextRequest) {
       data: {
         ...validatedData,
         isPublic: validatedData.isPublic || false,
-      },
-      include: {
-        project: {
-          select: {
-            id: true,
-            name: true,
-            type: true,
-          },
-        },
-        task: {
-          select: {
-            id: true,
-            title: true,
-          },
-        },
-        uploader: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
       },
     });
 

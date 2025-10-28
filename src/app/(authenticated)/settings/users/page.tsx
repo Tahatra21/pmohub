@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   Users, 
@@ -35,80 +35,118 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useToast } from '@/hooks/use-toast';
+import UserModal from '@/components/auth/UserModal';
 
-// Mock data for users
-const mockUsers = [
-  {
-    id: '1',
-    name: 'John Doe',
-    email: 'john.doe@projecthub.com',
-    role: 'Project Manager',
-    status: 'Active',
-    lastLogin: '2024-01-15 14:30:25',
-    createdAt: '2024-01-01',
-    avatar: '',
-    phone: '+62 812-3456-7890'
-  },
-  {
-    id: '2',
-    name: 'Jane Smith',
-    email: 'jane.smith@projecthub.com',
-    role: 'Field Engineer',
-    status: 'Active',
-    lastLogin: '2024-01-15 13:45:12',
-    createdAt: '2024-01-02',
-    avatar: '',
-    phone: '+62 812-3456-7891'
-  },
-  {
-    id: '3',
-    name: 'Mike Johnson',
-    email: 'mike.johnson@projecthub.com',
-    role: 'IT Developer',
-    status: 'Active',
-    lastLogin: '2024-01-15 12:20:08',
-    createdAt: '2024-01-03',
-    avatar: '',
-    phone: '+62 812-3456-7892'
-  },
-  {
-    id: '4',
-    name: 'Sarah Wilson',
-    email: 'sarah.wilson@projecthub.com',
-    role: 'System Admin',
-    status: 'Active',
-    lastLogin: '2024-01-15 11:15:45',
-    createdAt: '2024-01-04',
-    avatar: '',
-    phone: '+62 812-3456-7893'
-  },
-  {
-    id: '5',
-    name: 'David Brown',
-    email: 'david.brown@projecthub.com',
-    role: 'Client',
-    status: 'Inactive',
-    lastLogin: '2024-01-10 10:30:22',
-    createdAt: '2024-01-05',
-    avatar: '',
-    phone: '+62 812-3456-7894'
-  },
-];
 
 export default function UsersPage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
 
-  const filteredUsers = mockUsers.filter(user => {
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        router.push('/login');
+        return;
+      }
+
+      const response = await fetch('/api/users?page=1&limit=100', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data.data.users || []);
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to fetch users',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch users',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = filterRole === 'all' || user.role === filterRole;
-    const matchesStatus = filterStatus === 'all' || user.status === filterStatus;
+    const matchesRole = filterRole === 'all' || user.role?.name === filterRole;
+    const matchesStatus = filterStatus === 'all' || (user.isActive ? 'Active' : 'Inactive') === filterStatus;
     
     return matchesSearch && matchesRole && matchesStatus;
   });
+
+  const handleAddUser = () => {
+    setSelectedUser(null);
+    setShowUserModal(true);
+  };
+
+  const handleEditUser = (user: any) => {
+    setSelectedUser(user);
+    setShowUserModal(true);
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm('Are you sure you want to delete this user?')) return;
+
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) return;
+
+      const response = await fetch(`/api/users?id=${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Success',
+          description: 'User deleted successfully',
+        });
+        fetchUsers();
+      } else {
+        const result = await response.json();
+        toast({
+          title: 'Error',
+          description: result.error || 'Failed to delete user',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete user',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
@@ -144,6 +182,14 @@ export default function UsersPage() {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -166,7 +212,7 @@ export default function UsersPage() {
             <p className="text-gray-500">Manage users, roles, and permissions</p>
           </div>
         </div>
-        <Button className="flex items-center gap-2">
+        <Button className="flex items-center gap-2" onClick={handleAddUser}>
           <Plus className="h-4 w-4" />
           Add User
         </Button>
@@ -180,7 +226,7 @@ export default function UsersPage() {
               <Users className="h-8 w-8 text-blue-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Users</p>
-                <p className="text-2xl font-bold">{mockUsers.length}</p>
+                <p className="text-2xl font-bold">{users.length}</p>
               </div>
             </div>
           </CardContent>
@@ -191,7 +237,7 @@ export default function UsersPage() {
               <Shield className="h-8 w-8 text-green-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Active Users</p>
-                <p className="text-2xl font-bold">{mockUsers.filter(u => u.status === 'Active').length}</p>
+                <p className="text-2xl font-bold">{users.filter(u => u.isActive).length}</p>
               </div>
             </div>
           </CardContent>
@@ -202,7 +248,11 @@ export default function UsersPage() {
               <Calendar className="h-8 w-8 text-purple-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">New This Month</p>
-                <p className="text-2xl font-bold">{mockUsers.filter(u => u.createdAt.startsWith('2024-01')).length}</p>
+                <p className="text-2xl font-bold">{users.filter(u => {
+                  const createdDate = new Date(u.createdAt);
+                  const now = new Date();
+                  return createdDate.getMonth() === now.getMonth() && createdDate.getFullYear() === now.getFullYear();
+                }).length}</p>
               </div>
             </div>
           </CardContent>
@@ -295,10 +345,12 @@ export default function UsersPage() {
                       </Avatar>
                       <div>
                         <div className="font-medium">{user.name}</div>
-                        <div className="text-sm text-gray-500 flex items-center gap-1">
-                          <Phone className="h-3 w-3" />
-                          {user.phone}
-                        </div>
+                        {user.phone && (
+                          <div className="text-sm text-gray-500 flex items-center gap-1">
+                            <Phone className="h-3 w-3" />
+                            {user.phone}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </TableCell>
@@ -309,23 +361,36 @@ export default function UsersPage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge className={getRoleBadgeColor(user.role)}>
-                      {user.role}
+                    <Badge className={getRoleBadgeColor(user.role?.name || '')}>
+                      {user.role?.name || 'No Role'}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge className={getStatusBadgeColor(user.status)}>
-                      {user.status}
+                    <Badge className={getStatusBadgeColor(user.isActive ? 'Active' : 'Inactive')}>
+                      {user.isActive ? 'Active' : 'Inactive'}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-gray-600">{user.lastLogin}</TableCell>
-                  <TableCell className="text-gray-600">{user.createdAt}</TableCell>
+                  <TableCell className="text-gray-600">
+                    {new Date(user.createdAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell className="text-gray-600">
+                    {new Date(user.createdAt).toLocaleDateString()}
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleEditUser(user)}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" className="text-red-600">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-red-600"
+                        onClick={() => handleDeleteUser(user.id)}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -336,6 +401,14 @@ export default function UsersPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* User Modal */}
+      <UserModal
+        isOpen={showUserModal}
+        onClose={() => setShowUserModal(false)}
+        user={selectedUser}
+        onSuccess={fetchUsers}
+      />
     </div>
   );
 }

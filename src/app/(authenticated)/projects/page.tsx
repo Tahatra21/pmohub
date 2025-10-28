@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -45,12 +45,22 @@ import {
   Building,
   Wrench
 } from 'lucide-react';
+import { TimelineStatusComponent, TimelineWarning, TimelineProgress } from '@/components/ui/timeline-status';
+import { TimelineStatus, RiskLevel } from '@/types';
+import { getRolePermissions } from '@/lib/permissions';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
+
+// Extend Window interface for searchTimeout
+declare global {
+  interface Window {
+    searchTimeout?: NodeJS.Timeout;
+  }
+}
 
 interface Project {
   id: string;
@@ -95,12 +105,21 @@ interface Project {
     documents: number;
     resourceAllocations?: number;
   };
+  // Timeline tracking fields
+  timelineStatus?: TimelineStatus;
+  timelineUpdatedAt?: string;
+  riskLevel?: RiskLevel;
+  delayDays?: number;
+  warningThreshold?: number;
+  daysRemaining?: number;
+  progressPercentage?: number;
 }
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchInput, setSearchInput] = useState(''); // Separate input state
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [typeFilter, setTypeFilter] = useState('ALL');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -115,6 +134,7 @@ export default function ProjectsPage() {
   const [projectTypes, setProjectTypes] = useState<any[]>([]);
   const [user, setUser] = useState<any>(null);
   const [userLoaded, setUserLoaded] = useState(false);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Function to get project type name (all CAPS LOCK)
   const getProjectTypeName = (type: string) => {
@@ -200,13 +220,77 @@ export default function ProjectsPage() {
   }>>([]);
 
   useEffect(() => {
-    fetchProjects();
+    const timeoutId = setTimeout(() => {
+      fetchProjects();
+    }, 800); // Increased debounce to 800ms for better UX
+
+    return () => clearTimeout(timeoutId);
   }, [searchTerm, statusFilter, typeFilter]);
+
+  // Handle search input changes with immediate UI update but delayed API call
+  const handleSearchInputChange = (value: string) => {
+    setSearchInput(value); // Update input immediately for responsive UI
+    
+    // Clear any existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    // Only update searchTerm (which triggers API call) after debounce
+    searchTimeoutRef.current = setTimeout(() => {
+      setSearchTerm(value);
+    }, 800);
+  };
 
   useEffect(() => {
     fetchResources();
     fetchProjectTypes();
+    loadUser();
   }, []);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const loadUser = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) return;
+
+      const response = await fetch('/api/users/me', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        const userInfo = userData.data;
+        
+        // Get role permissions
+        const rolePermissions = getRolePermissions(userInfo.role.name);
+        
+        const userWithPermissions = {
+          id: userInfo.id,
+          email: userInfo.email,
+          name: userInfo.name,
+          role: userInfo.role,
+          permissions: rolePermissions,
+        };
+        
+        setUser(userWithPermissions);
+        setUserLoaded(true);
+        console.log('User loaded with permissions:', userWithPermissions);
+      }
+    } catch (error) {
+      console.error('Error loading user:', error);
+    }
+  };
 
   const fetchProjects = async () => {
     try {
@@ -621,7 +705,6 @@ export default function ProjectsPage() {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'URGENT': return 'bg-red-100 text-red-800';
       case 'HIGH': return 'bg-orange-100 text-orange-800';
       case 'MEDIUM': return 'bg-yellow-100 text-yellow-800';
       case 'LOW': return 'bg-green-100 text-green-800';
@@ -737,7 +820,6 @@ export default function ProjectsPage() {
                     <SelectItem value="LOW">Low</SelectItem>
                     <SelectItem value="MEDIUM">Medium</SelectItem>
                     <SelectItem value="HIGH">High</SelectItem>
-                    <SelectItem value="URGENT">Urgent</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -919,8 +1001,8 @@ export default function ProjectsPage() {
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search projects..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  value={searchInput}
+                  onChange={(e) => handleSearchInputChange(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -999,7 +1081,7 @@ export default function ProjectsPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Badge className={getStatusColor(project.status)}>
                     {project.status.replace('_', ' ')}
                   </Badge>
@@ -1009,6 +1091,16 @@ export default function ProjectsPage() {
                   <Badge variant="outline">
                     {getProjectTypeName(project.type)}
                   </Badge>
+                  {/* Timeline Status */}
+                  {project.timelineStatus && (
+                    <TimelineStatusComponent
+                      status={project.timelineStatus}
+                      riskLevel={project.riskLevel || RiskLevel.LOW}
+                      delayDays={project.delayDays}
+                      daysRemaining={project.daysRemaining}
+                      size="sm"
+                    />
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -1028,13 +1120,25 @@ export default function ProjectsPage() {
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span>Progress</span>
-                    <span>{project.progress}%</span>
-                  </div>
-                  <Progress value={project.progress} className="h-2" />
-                </div>
+                {/* Timeline Progress */}
+                <TimelineProgress
+                  progress={project.progress}
+                  daysRemaining={project.daysRemaining || 0}
+                  totalDays={project.startDate && project.endDate ? 
+                    Math.ceil((new Date(project.endDate).getTime() - new Date(project.startDate).getTime()) / (1000 * 60 * 60 * 24)) : 0
+                  }
+                  status={project.timelineStatus || TimelineStatus.ON_TIME}
+                />
+
+                {/* Timeline Warning */}
+                {project.timelineStatus && (
+                  <TimelineWarning
+                    status={project.timelineStatus}
+                    daysRemaining={project.daysRemaining || 0}
+                    delayDays={project.delayDays || 0}
+                    projectName={project.name}
+                  />
+                )}
 
                 <div className="flex items-center justify-between pt-2 border-t">
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -1158,7 +1262,6 @@ export default function ProjectsPage() {
                   <SelectItem value="LOW">Low</SelectItem>
                   <SelectItem value="MEDIUM">Medium</SelectItem>
                   <SelectItem value="HIGH">High</SelectItem>
-                  <SelectItem value="URGENT">Urgent</SelectItem>
                 </SelectContent>
               </Select>
             </div>

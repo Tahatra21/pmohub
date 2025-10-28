@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   Shield, 
@@ -13,7 +13,10 @@ import {
   ArrowLeft,
   AlertTriangle,
   CheckCircle,
-  XCircle
+  XCircle,
+  Users,
+  Clock,
+  Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,8 +26,11 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { toast } from 'sonner';
 
 interface SecuritySettings {
+  id?: string;
   passwordPolicy: {
     minLength: number;
     requireUppercase: boolean;
@@ -49,13 +55,32 @@ interface SecuritySettings {
     encryptionAlgorithm: string;
     keyRotationDays: number;
   };
+  updatedAt?: string;
+  updatedBy?: string;
+}
+
+interface UserSession {
+  id: string;
+  userId: string;
+  sessionId: string;
+  userName: string;
+  userEmail: string;
+  ipAddress?: string;
+  userAgent?: string;
+  isActive: boolean;
+  lastActivity: string;
+  expiresAt: string;
+  createdAt: string;
 }
 
 export default function SecurityPage() {
   const router = useRouter();
   const [showPasswords, setShowPasswords] = useState<{[key: string]: boolean}>({});
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
+  const [sessions, setSessions] = useState<UserSession[]>([]);
+  const [showSessions, setShowSessions] = useState(false);
 
   const [settings, setSettings] = useState<SecuritySettings>({
     passwordPolicy: {
@@ -86,16 +111,183 @@ export default function SecurityPage() {
 
   const [newIp, setNewIp] = useState('');
 
+  const fetchSecuritySettings = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        toast.error('Authentication required');
+        return;
+      }
+
+      const response = await fetch('/api/security-settings', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch security settings');
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        setSettings(result.data);
+        setLastSaved(result.data.updatedAt ? new Date(result.data.updatedAt).toLocaleTimeString() : null);
+      }
+    } catch (error) {
+      console.error('Error fetching security settings:', error);
+      toast.error('Failed to fetch security settings');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchSessions = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        toast.error('Authentication required');
+        return;
+      }
+
+      const response = await fetch('/api/sessions', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch sessions');
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        setSessions(result.data.sessions);
+      }
+    } catch (error) {
+      console.error('Error fetching sessions:', error);
+      toast.error('Failed to fetch sessions');
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSecuritySettings();
+  }, [fetchSecuritySettings]);
+
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setLastSaved(new Date().toLocaleTimeString());
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        toast.error('Authentication required');
+        return;
+      }
+
+      const response = await fetch('/api/security-settings', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          passwordMinLength: settings.passwordPolicy.minLength,
+          passwordRequireUpper: settings.passwordPolicy.requireUppercase,
+          passwordRequireLower: settings.passwordPolicy.requireLowercase,
+          passwordRequireNumber: settings.passwordPolicy.requireNumbers,
+          passwordRequireSpecial: settings.passwordPolicy.requireSpecialChars,
+          passwordExpiryDays: settings.passwordPolicy.passwordExpiryDays,
+          sessionTimeoutMinutes: settings.sessionSettings.sessionTimeout,
+          maxConcurrentSessions: settings.sessionSettings.maxConcurrentSessions,
+          requireReauthSensitive: settings.sessionSettings.requireReauthForSensitive,
+          enableTwoFactor: settings.accessControl.enableTwoFactor,
+          enableIpWhitelist: settings.accessControl.enableIpWhitelist,
+          allowedIps: settings.accessControl.allowedIps,
+          enableAuditLog: settings.accessControl.enableAuditLog,
+          enableDataEncryption: settings.encryption.enableDataEncryption,
+          encryptionAlgorithm: settings.encryption.encryptionAlgorithm,
+          keyRotationDays: settings.encryption.keyRotationDays,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save security settings');
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        setLastSaved(new Date().toLocaleTimeString());
+        toast.success('Security settings saved successfully');
+        fetchSecuritySettings(); // Refresh data
+      }
     } catch (error) {
       console.error('Error saving settings:', error);
+      toast.error('Failed to save security settings');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleTerminateSession = async (sessionId: string) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        toast.error('Authentication required');
+        return;
+      }
+
+      const response = await fetch(`/api/sessions?action=single&sessionId=${sessionId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to terminate session');
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        toast.success('Session terminated successfully');
+        fetchSessions(); // Refresh sessions
+      }
+    } catch (error) {
+      console.error('Error terminating session:', error);
+      toast.error('Failed to terminate session');
+    }
+  };
+
+  const handleTerminateAllSessions = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        toast.error('Authentication required');
+        return;
+      }
+
+      const response = await fetch('/api/sessions?action=all', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to terminate all sessions');
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        toast.success('All sessions terminated successfully');
+        fetchSessions(); // Refresh sessions
+      }
+    } catch (error) {
+      console.error('Error terminating all sessions:', error);
+      toast.error('Failed to terminate all sessions');
     }
   };
 
@@ -137,6 +329,16 @@ export default function SecurityPage() {
   };
 
   const passwordStrength = getPasswordStrength();
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -464,6 +666,92 @@ export default function SecurityPage() {
                 max="365"
               />
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Session Management */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Active Sessions
+            </CardTitle>
+            <CardDescription>
+              Manage active user sessions
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowSessions(!showSessions);
+                    if (!showSessions) {
+                      fetchSessions();
+                    }
+                  }}
+                >
+                  {showSessions ? 'Hide' : 'Show'} Active Sessions
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={handleTerminateAllSessions}
+                  disabled={sessions.length === 0}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Terminate All
+                </Button>
+              </div>
+              <Badge variant="outline">
+                {sessions.length} Active Sessions
+              </Badge>
+            </div>
+
+            {showSessions && (
+              <div className="space-y-2">
+                {sessions.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No active sessions found</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {sessions.map((session) => (
+                      <div key={session.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{session.userName}</span>
+                            <Badge variant="outline" className="text-xs">
+                              {session.userEmail}
+                            </Badge>
+                          </div>
+                          <div className="text-sm text-gray-500 mt-1">
+                            <div className="flex items-center gap-4">
+                              <span className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                Last activity: {new Date(session.lastActivity).toLocaleString()}
+                              </span>
+                              {session.ipAddress && (
+                                <span>IP: {session.ipAddress}</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleTerminateSession(session.sessionId)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

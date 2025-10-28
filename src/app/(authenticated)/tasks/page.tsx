@@ -47,6 +47,12 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
+import { 
+  TimelineStatusComponent, 
+  TimelineWarning, 
+  TimelineProgress 
+} from '@/components/ui/timeline-status';
+import { TimelineStatus, RiskLevel } from '@/types';
 
 interface Task {
   id: string;
@@ -58,6 +64,14 @@ interface Task {
   startDate?: string;
   endDate?: string;
   createdAt: string;
+  // Timeline tracking fields
+  timelineStatus?: 'ON_TIME' | 'AT_RISK' | 'DELAYED' | 'AHEAD';
+  timelineUpdatedAt?: string;
+  riskLevel?: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  delayDays?: number;
+  warningThreshold?: number;
+  daysRemaining?: number;
+  progressPercentage?: number;
   project: {
     id: string;
     name: string;
@@ -110,22 +124,47 @@ export default function TasksPage() {
   const [user, setUser] = useState<any>(null);
   const [userLoaded, setUserLoaded] = useState(false);
 
-  // Load user from token
+  // Load user from API
   useEffect(() => {
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        setUser(payload);
+    loadUser();
+  }, []);
+
+  const loadUser = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) return;
+
+      const response = await fetch('/api/users/me', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        const userInfo = userData.data;
+        
+        // Get role permissions
+        const { getRolePermissions } = await import('@/lib/permissions');
+        const rolePermissions = getRolePermissions(userInfo.role.name);
+        
+        const userWithPermissions = {
+          id: userInfo.id,
+          email: userInfo.email,
+          name: userInfo.name,
+          role: userInfo.role,
+          permissions: rolePermissions,
+        };
+        
+        setUser(userWithPermissions);
         setUserLoaded(true);
-      } catch (error) {
-        console.error('Error decoding token:', error);
-        setUserLoaded(true);
+        console.log('User loaded with permissions:', userWithPermissions);
       }
-    } else {
+    } catch (error) {
+      console.error('Error loading user:', error);
       setUserLoaded(true);
     }
-  }, []);
+  };
 
   // Permission check function
   const hasPermission = (permission: string): boolean => {
@@ -174,9 +213,11 @@ export default function TasksPage() {
   }>>([]);
 
   useEffect(() => {
-    fetchTasks();
-    fetchResources();
-  }, [searchTerm, statusFilter, priorityFilter]);
+    if (userLoaded) {
+      fetchTasks();
+      fetchResources();
+    }
+  }, [userLoaded, searchTerm, statusFilter, priorityFilter]);
 
   const fetchResources = async () => {
     try {
@@ -264,7 +305,14 @@ export default function TasksPage() {
 
       if (response.ok) {
         const data = await response.json();
-        setTasks(data.data.tasks || []);
+        console.log('Tasks fetched:', data.data?.length || 0, 'tasks');
+        console.log('Sample task timeline data:', data.data?.[0] ? {
+          title: data.data[0].title,
+          delayDays: data.data[0].delayDays,
+          timelineStatus: data.data[0].timelineStatus,
+          daysRemaining: data.data[0].daysRemaining
+        } : 'No tasks');
+        setTasks(data.data || []);
       }
     } catch (error) {
       console.error('Error fetching tasks:', error);
@@ -861,18 +909,18 @@ export default function TasksPage() {
       {tasks.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {tasks.map((task) => (
-            <Card key={task.id} className="hover:shadow-lg transition-shadow">
+            <Card key={task.id} className="hover:shadow-lg transition-shadow border-l-4" style={{ borderLeftColor: task.progress === 100 ? '#10b981' : task.progress >= 50 ? '#3b82f6' : '#f59e0b' }}>
               <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="text-lg">{task.title}</CardTitle>
-                    <CardDescription className="line-clamp-2">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-1 flex-1 min-w-0">
+                    <CardTitle className="text-lg font-semibold line-clamp-1">{task.title}</CardTitle>
+                    <CardDescription className="line-clamp-2 text-sm text-gray-600">
                       {task.description || 'No description provided'}
                     </CardDescription>
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" className="flex-shrink-0">
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -897,62 +945,58 @@ export default function TasksPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center gap-2">
+                {/* Progress Bar */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium text-gray-700">Progress</span>
+                    <span className="text-sm font-semibold text-blue-600">{task.progress}%</span>
+                  </div>
+                  <Progress value={task.progress} className="h-2.5" />
+                </div>
+
+                {/* Status and Priority Badges */}
+                <div className="flex items-center gap-2 flex-wrap">
                   <Badge className={getStatusColor(task.status)}>
                     {task.status.replace('_', ' ')}
                   </Badge>
                   <Badge className={getPriorityColor(task.priority)}>
                     {task.priority}
                   </Badge>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <CheckSquare className="h-4 w-4 mr-2" />
-                    {task.project.name}
-                  </div>
-                  {task.assignee && (
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <User className="h-4 w-4 mr-2" />
-                      {task.assignee.name}
-                    </div>
+                  {/* Timeline Status */}
+                  {task.timelineStatus && (
+                    <TimelineStatusComponent 
+                      status={task.timelineStatus as TimelineStatus}
+                      riskLevel={task.riskLevel as RiskLevel}
+                      delayDays={task.delayDays || 0}
+                      daysRemaining={task.daysRemaining || 0}
+                      size="sm"
+                    />
                   )}
-                  {task.startDate && (
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      {new Date(task.startDate).toLocaleDateString()} - {task.endDate ? new Date(task.endDate).toLocaleDateString() : 'Ongoing'}
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span>Progress</span>
-                    <span>{task.progress}%</span>
-                  </div>
-                  <Progress value={task.progress} className="h-2" />
                 </div>
 
                 {/* Assigned Team - Simple Display */}
                 {user && userLoaded && (hasPermission('resources:read') || hasPermission('tasks:all')) && task.resourceAllocations && task.resourceAllocations.length > 0 && (
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium">Assigned Team</span>
-                    <span className="text-muted-foreground">{task.resourceAllocations.length} member(s)</span>
+                  <div className="flex items-center justify-between text-sm bg-gray-50 p-2 rounded-md">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-gray-600" />
+                      <span className="font-medium text-gray-700">Assigned Team</span>
+                    </div>
+                    <span className="text-muted-foreground font-medium">{task.resourceAllocations.length} member(s)</span>
                   </div>
                 )}
 
                 <div className="flex items-center justify-between pt-2 border-t">
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    {user && userLoaded && (hasPermission('resources:read') || hasPermission('tasks:all')) && task.resourceAllocations && task.resourceAllocations.length > 0 && (
+                    {task.endDate && (
                       <div className="flex items-center gap-1">
-                        <Users className="h-4 w-4" />
-                        {task.resourceAllocations.length}
+                        <Calendar className="h-4 w-4" />
+                        {new Date(task.endDate).toLocaleDateString()}
                       </div>
                     )}
                   </div>
                   <Button variant="outline" size="sm" onClick={() => openViewDialog(task)}>
                     <Eye className="h-4 w-4 mr-2" />
-                    View
+                    View Details
                   </Button>
                 </div>
               </CardContent>

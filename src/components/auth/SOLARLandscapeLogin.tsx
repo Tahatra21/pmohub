@@ -37,6 +37,14 @@ export default function SOLARLandscapeLogin() {
 
       console.log('Response status:', response.status);
       console.log('Response headers:', response.headers);
+      console.log('Response ok:', response.ok);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Response not OK:', errorText);
+        setMessage(`Server error: ${response.status} - ${errorText}`);
+        return;
+      }
 
       const data = await response.json();
       console.log('Response data:', data);
@@ -63,7 +71,19 @@ export default function SOLARLandscapeLogin() {
       }
     } catch (error) {
       console.error('Login error:', error);
-      setMessage('Terjadi kesalahan saat login. Silakan coba lagi.');
+      console.error('Error details:', {
+        name: (error as Error).name,
+        message: (error as Error).message,
+        stack: (error as Error).stack
+      });
+      
+      if (error instanceof TypeError && (error as Error).message.includes('fetch')) {
+        setMessage('Tidak dapat terhubung ke server. Periksa koneksi internet Anda.');
+      } else if (error instanceof SyntaxError) {
+        setMessage('Server mengembalikan respons yang tidak valid.');
+      } else {
+        setMessage(`Terjadi kesalahan: ${(error as Error).message || 'Silakan coba lagi.'}`);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -208,26 +228,6 @@ export default function SOLARLandscapeLogin() {
                     {message}
                   </div>
                 )}
-
-                {/* Demo Credentials */}
-                <div className="mt-6">
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-white px-2 text-gray-500">
-                        Demo Credentials
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-4 space-y-2 text-sm text-gray-600">
-                    <p><strong>Admin:</strong> admin@projecthub.com / admin123</p>
-                    <p><strong>Manager:</strong> manager@projecthub.com / manager123</p>
-                    <p><strong>Engineer:</strong> engineer@projecthub.com / engineer123</p>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -285,7 +285,7 @@ export default function SOLARLandscapeLogin() {
               </div>
 
               <p className="text-lg text-blue-100 mb-8 max-w-xl">
-                Platform terintegrasi untuk mengelola Solar Energy Projects & Resources dengan teknologi terdepan
+                Platform terintegrasi untuk mengelola Solar Projects & Resources dengan teknologi terdepan
               </p>
 
               {/* Products Grid */}
@@ -320,8 +320,8 @@ export default function SOLARLandscapeLogin() {
                       <Video className="w-5 h-5 text-purple-300" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-sm mb-0.5">Solar Installation Tasks</h3>
-                      <p className="text-xs text-blue-100">Efficient solar installation tracking</p>
+                      <h3 className="font-bold text-sm mb-0.5">Solar Tasks</h3>
+                      <p className="text-xs text-blue-100">Efficient solar tasks tracking</p>
                     </div>
                   </div>
                 </div>
@@ -357,7 +357,7 @@ export default function SOLARLandscapeLogin() {
                     </div>
                     <div>
                       <h3 className="font-bold text-sm mb-0.5">Solar Analytics & Reports</h3>
-                      <p className="text-xs text-blue-100">Solar energy data insights</p>
+                      <p className="text-xs text-blue-100">Solar data insights</p>
                     </div>
                   </div>
                 </div>
@@ -372,7 +372,7 @@ export default function SOLARLandscapeLogin() {
 
       {/* Footer */}
       <div className="absolute bottom-4 left-0 right-0 text-center text-white/60 text-xs">
-        <p>© 2025 SOLAR Hub - Solar Energy Project Management System</p>
+        <p>© 2025 SOLAR Hub - Solution Architect Collaboration Platform by PLN 1</p>
       </div>
     </div>
   );

@@ -5,10 +5,10 @@ const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest) {
   try {
-    // Return hardcoded project types with CAPS LOCK
+    // Return hardcoded project types with proper enum values
     const projectTypes = [
       {
-        id: 'INFRA NETWORK',
+        id: 'INFRA_NETWORK',
         name: 'INFRA NETWORK',
         description: 'Network infrastructure and electrical projects',
         isActive: true,
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
         updatedAt: new Date().toISOString()
       },
       {
-        id: 'INFRA CLOUD & DC',
+        id: 'INFRA_CLOUD_DC',
         name: 'INFRA CLOUD & DC',
         description: 'Cloud infrastructure and data center projects',
         isActive: true,
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
         updatedAt: new Date().toISOString()
       },
       {
-        id: 'MULTIMEDIA & IOT',
+        id: 'MULTIMEDIA_IOT',
         name: 'MULTIMEDIA & IOT',
         description: 'Multimedia systems and IoT implementation projects',
         isActive: true,
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
         updatedAt: new Date().toISOString()
       },
       {
-        id: 'DIGITAL ELECTRICITY',
+        id: 'DIGITAL_ELECTRICITY',
         name: 'DIGITAL ELECTRICITY',
         description: 'Digital electricity management systems',
         isActive: true,
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
         updatedAt: new Date().toISOString()
       },
       {
-        id: 'SAAS BASED',
+        id: 'SAAS_BASED',
         name: 'SAAS BASED',
         description: 'Software as a Service based projects',
         isActive: true,

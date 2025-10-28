@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyToken, hasPermission } from '@/lib/auth';
+import { apiCache } from '@/lib/cache';
 import { z } from 'zod';
+import { calculateTimelineStatus } from '@/lib/timeline-utils';
 
 const projectSchema = z.object({
   name: z.string().min(2),
   description: z.string().optional(),
-  type: z.string().min(1),
+  type: z.enum(['INFRA_NETWORK', 'INFRA_CLOUD_DC', 'MULTIMEDIA_IOT', 'DIGITAL_ELECTRICITY', 'SAAS_BASED']),
   client: z.string().min(2),
   location: z.string().optional(),
-  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).default('MEDIUM'),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).default('MEDIUM'),
   status: z.enum(['PLANNING', 'IN_PROGRESS', 'ON_HOLD', 'COMPLETED', 'CANCELLED']).default('PLANNING'),
   progress: z.number().min(0).max(100).default(0),
   startDate: z.string().optional(),
@@ -55,12 +57,51 @@ export async function GET(request: NextRequest) {
 
     const where: any = {};
 
+    // Build search criteria
+    const searchCriteria: any[] = [];
     if (search) {
-      where.OR = [
+      searchCriteria.push(
         { name: { contains: search, mode: 'insensitive' } },
         { client: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } }
+      );
+    }
+
+    // Build permission criteria
+    const permissionCriteria: any[] = [];
+    if (!hasPermission(user, 'projects:all')) {
+      // Project Manager can see projects they created or are members of
+      if (hasPermission(user, 'projects:create')) {
+        permissionCriteria.push(
+          { createdBy: user.id }, // Projects they created
+          {
+            members: {
+              some: {
+                userId: user.id,
+              },
+            },
+          } // Projects they are members of
+        );
+      } else {
+        // Regular users can only see projects they are members of
+        where.members = {
+          some: {
+            userId: user.id,
+          },
+        };
+      }
+    }
+
+    // Combine search and permission criteria
+    if (searchCriteria.length > 0 && permissionCriteria.length > 0) {
+      where.AND = [
+        { OR: searchCriteria },
+        { OR: permissionCriteria }
       ];
+    } else if (searchCriteria.length > 0) {
+      where.OR = searchCriteria;
+    } else if (permissionCriteria.length > 0) {
+      where.OR = permissionCriteria;
     }
 
     if (status) {
@@ -72,30 +113,6 @@ export async function GET(request: NextRequest) {
     }
 
     console.log('Projects API - Where clause:', where);
-
-    // Filter projects based on user role
-    if (!hasPermission(user, 'projects:all')) {
-      // Project Manager can see projects they created or are members of
-      if (hasPermission(user, 'projects:create')) {
-        where.OR = [
-          { createdBy: user.id }, // Projects they created
-          {
-            members: {
-              some: {
-                userId: user.id,
-              },
-            },
-          }, // Projects they are members of
-        ];
-      } else {
-        // Regular users can only see projects they are members of
-        where.members = {
-          some: {
-            userId: user.id,
-          },
-        };
-      }
-    }
 
     const [projects, total] = await Promise.all([
       db.project.findMany({
@@ -115,10 +132,32 @@ export async function GET(request: NextRequest) {
       db.project.count({ where }),
     ]);
 
+    // Calculate timeline status for each project
+    const projectsWithTimeline = projects.map(project => {
+      const timeline = calculateTimelineStatus(
+        project.startDate,
+        project.endDate,
+        project.status,
+        project.warningThreshold || 7,
+        project.progress
+      );
+      
+      return {
+        ...project,
+        ...timeline,
+        // Update timeline status in database if changed
+        timelineStatus: timeline.timelineStatus,
+        riskLevel: timeline.riskLevel,
+        delayDays: timeline.delayDays,
+        daysRemaining: timeline.daysRemaining,
+        progressPercentage: timeline.progressPercentage
+      };
+    });
+
     return NextResponse.json({
       success: true,
       data: {
-        projects,
+        projects: projectsWithTimeline,
         pagination: {
           page,
           limit,

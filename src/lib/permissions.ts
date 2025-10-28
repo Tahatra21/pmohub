@@ -94,76 +94,15 @@ export const PERMISSIONS = {
   'lifecycle:update': 'Update lifecycle data',
   'lifecycle:delete': 'Delete lifecycle data',
   'lifecycle:all': 'Full lifecycle access',
+  
+  // License permissions
+  'license:read': 'View license monitoring data',
+  'license:write': 'Create and update license data',
 } as const;
 
-// Role definitions with their permissions - Simplified 3-Role System
+// Role definitions with their permissions - Updated Access Control System
 export const ROLE_PERMISSIONS: Record<string, RolePermissions> = {
-  'Admin': {
-    // Full system administrator access
-    'dashboard:read': true,
-    'projects:all': true,
-    'tasks:all': true,
-    'users:all': true,
-    'roles:create': true,
-    'roles:read': true,
-    'roles:update': true,
-    'roles:delete': true,
-    'resources:all': true,
-    'budgets:all': true,
-    'documents:all': true,
-    'milestones:create': true,
-    'milestones:read': true,
-    'milestones:update': true,
-    'milestones:delete': true,
-    'activity:all': true,
-    'lifecycle:all': true,
-    'cost:all': true,
-    'settings:system': true,
-  },
-  
-  'Project Manager': {
-    // Project and team management access
-    'dashboard:read': true,
-    'projects:create': true,
-    'projects:read': true,
-    'projects:update': true,
-    'tasks:all': true,
-    'users:read': true,
-    'resources:read': true,
-    'resources:create': true,
-    'resources:allocate': true,
-    'budgets:read': true,
-    'budgets:create': true,
-    'budgets:approve': true,
-    'documents:all': true,
-    'milestones:create': true,
-    'milestones:read': true,
-    'milestones:update': true,
-    'milestones:delete': true,
-    'activity:read': true,
-    'lifecycle:read': true,
-    'cost:read': true,
-    'cost:write': true,
-    'settings:read': true,
-  },
-  
-  'User': {
-    // Basic team member access
-    'projects:read': true,
-    'tasks:read': true,
-    'tasks:update': true,
-    'users:read': true,
-    'documents:read': true,
-    'documents:create': true,
-    'documents:download': true,
-    'milestones:read': true,
-    'activity:read': true,
-    'lifecycle:read': true,
-    'cost:read': true,
-    'settings:read': true,
-  },
-
-  // Legacy role support (for backward compatibility)
+  // SYSTEM ADMIN - Full Access
   'System Admin': {
     'dashboard:read': true,
     'projects:all': true,
@@ -175,29 +114,94 @@ export const ROLE_PERMISSIONS: Record<string, RolePermissions> = {
     'roles:delete': true,
     'resources:all': true,
     'budgets:all': true,
+    'cost:all': true,
     'documents:all': true,
     'milestones:create': true,
     'milestones:read': true,
     'milestones:update': true,
     'milestones:delete': true,
     'activity:all': true,
+    'lifecycle:all': true,
     'settings:system': true,
+    'license:read': true,
+    'license:write': true,
   },
   
+  // PROJECT MANAGER - Management Access
+  'Project Manager': {
+    'dashboard:read': true,
+    'projects:all': true,
+    'tasks:all': true,
+    'resources:all': true,
+    'budgets:all': true,
+    'cost:all': true,
+    'documents:all': true,
+    'milestones:create': true,
+    'milestones:read': true,
+    'milestones:update': true,
+    'milestones:delete': true,
+    'activity:read': true,
+    'lifecycle:all': true,
+    'settings:read': true,
+    'license:read': true,
+    'license:write': true,
+  },
+  
+  // FIELD/SITE ENGINEER - Task Execution
   'Field/Site Engineer': {
     'dashboard:read': true,
     'projects:read': true,
+    'projects:update': true,
     'tasks:read': true,
     'tasks:update': true,
-    'users:read': true,
-    'resources:read': true,
     'budgets:read': true,
     'documents:read': true,
     'documents:create': true,
     'documents:download': true,
-    'milestones:read': true,
     'activity:read': true,
+    'lifecycle:all': true,
+    'license:read': true,
+    'license:write': true,
+  },
+  
+  // CLIENT/STAKEHOLDER - View-Only
+  'Client / Stakeholder': {
+    'dashboard:read': true,
+    'projects:read': true,
+    'tasks:read': true,
+    'resources:read': true,
+    'budgets:read': true,
+    'documents:read': true,
+    'documents:download': true,
+    'activity:read': true,
+    'lifecycle:read': true,
+    'license:read': true,
+  },
+
+  // Legacy role support (for backward compatibility)
+  'Admin': {
+    'dashboard:read': true,
+    'projects:all': true,
+    'tasks:all': true,
+    'users:all': true,
+    'roles:create': true,
+    'roles:read': true,
+    'roles:update': true,
+    'roles:delete': true,
+    'resources:all': true,
+    'budgets:all': true,
+    'cost:all': true,
+    'documents:all': true,
+    'milestones:create': true,
+    'milestones:read': true,
+    'milestones:update': true,
+    'milestones:delete': true,
+    'activity:all': true,
+    'lifecycle:all': true,
     'settings:read': true,
+    'settings:system': true,
+    'license:read': true,
+    'license:write': true,
   },
   
   'IT Developer / Technical Team': {
@@ -211,20 +215,8 @@ export const ROLE_PERMISSIONS: Record<string, RolePermissions> = {
     'milestones:read': true,
     'activity:read': true,
     'settings:read': true,
-  },
-  
-  'Client / Stakeholder': {
-    'dashboard:read': true,
-    'projects:read': true,
-    'tasks:read': true,
-    'users:read': true,
-    'resources:read': true,
-    'budgets:read': true,
-    'documents:read': true,
-    'documents:download': true,
-    'milestones:read': true,
-    'activity:read': true,
-    'settings:read': true,
+    'lifecycle:read': true,
+    'license:read': true,
   },
 };
 
@@ -232,29 +224,30 @@ export const ROLE_PERMISSIONS: Record<string, RolePermissions> = {
 export function hasPermission(userPermissions: RolePermissions | any, permission: string): boolean {
   console.log('Permissions: Checking permission:', permission, 'for user:', userPermissions);
   
-  // For now, allow all permissions to ensure access works
-  // TODO: Implement proper permission system later
-  console.log('Permissions: Permission granted (bypassed)');
-  return true;
-  
-  // Original permission logic (commented out for debugging)
-  /*
   // Handle nested permissions structure from token
   if (userPermissions && typeof userPermissions === 'object') {
     // Check if it's flat structure (e.g., {"projects:all": true})
     if (userPermissions[permission] === true) {
+      console.log('Permissions: Permission granted (flat structure)');
+      return true;
+    }
+    
+    // Check if user has :all permission for this resource
+    const [resource, action] = permission.split(':');
+    if (userPermissions[`${resource}:all`] === true) {
+      console.log('Permissions: Permission granted via :all');
       return true;
     }
     
     // Check if it's nested structure (e.g., {"projects": {"all": true}})
-    const [resource, action] = permission.split(':');
     if (userPermissions[resource] && userPermissions[resource][action] === true) {
+      console.log('Permissions: Permission granted (nested structure)');
       return true;
     }
   }
   
+  console.log('Permissions: Permission denied');
   return false;
-  */
 }
 
 export function hasAnyPermission(userPermissions: RolePermissions, permissions: string[]): boolean {

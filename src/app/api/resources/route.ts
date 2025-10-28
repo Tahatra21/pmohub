@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     // Verify token directly
     const user = await verifyToken(token);
-    if (!user || !hasPermission(user, 'resources:read') && !hasPermission(user, 'resources:all')) {
+    if (!user || (!hasPermission(user, 'resources:read') && !hasPermission(user, 'resources:all'))) {
       return NextResponse.json(
         { success: false, error: 'Insufficient permissions' },
         { status: 403 }

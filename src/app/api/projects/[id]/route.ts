@@ -10,7 +10,7 @@ const updateProjectSchema = z.object({
   client: z.string().min(2).optional(),
   location: z.string().optional(),
   status: z.enum(['PLANNING', 'IN_PROGRESS', 'ON_HOLD', 'COMPLETED', 'CANCELLED']).optional(),
-  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
   progress: z.number().min(0).max(100).optional(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),

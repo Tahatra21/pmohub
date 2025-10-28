@@ -119,13 +119,16 @@ model User {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  passwordChangedAt DateTime?
 
   // Relations
   createdProjects     Project[]           @relation("ProjectCreator")
   projectMemberships  ProjectMember[]
   assignedTasks       Task[]              @relation("TaskAssignee")
   createdTasks        Task[]              @relation("TaskCreator")
-  resource            Resource?           @relation("UserResource")
+  userSessions        UserSession[]
+  twoFactorAuth       TwoFactorAuth?
+  uploadedDocuments   Document[]
 
   @@map("tbl_users")
 }
@@ -158,12 +161,22 @@ model Project {
   createdBy   String
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
-  type        String
+  type        ProjectType
+  
+  // Timeline tracking fields
+  timelineStatus    TimelineStatus? @default(ON_TIME)
+  timelineUpdatedAt DateTime?
+  riskLevel         RiskLevel?      @default(LOW)
+  delayDays         Int?            @default(0)
+  warningThreshold  Int?            @default(7) // days before warning
+  daysRemaining     Int?
+  progressPercentage Float?
 
   // Relations
   creator             User               @relation("ProjectCreator", fields: [createdBy], references: [id])
   members             ProjectMember[]
   tasks               Task[]
+  documents           Document[]
 
   @@map("tbl_projects")
 }
@@ -199,11 +212,21 @@ model Task {
   actualHours    Float?
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
+  
+  // Timeline tracking fields
+  timelineStatus    TimelineStatus? @default(ON_TIME)
+  timelineUpdatedAt DateTime?
+  riskLevel         RiskLevel?      @default(LOW)
+  delayDays         Int?            @default(0)
+  warningThreshold  Int?            @default(3) // days before warning
+  daysRemaining     Int?
+  progressPercentage Float?
 
   // Relations
   project           Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
   assignee           User?               @relation("TaskAssignee", fields: [assigneeId], references: [id])
   creator            User                @relation("TaskCreator", fields: [creatorId], references: [id])
+  documents          Document[]
 
   @@map("tbl_tasks")
 }
@@ -247,9 +270,6 @@ model Resource {
   hourlyRate  Float?
   status      ResourceStatus @default(AVAILABLE)
   type        ResourceType
-
-  // Relations
-  user User @relation("UserResource", fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("tbl_resources")
 }
@@ -310,6 +330,11 @@ model Document {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  // Relations
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  task        Task?    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  uploader    User     @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
+
   @@map("tbl_documents")
 }
 
@@ -317,10 +342,13 @@ model ActivityLog {
   id          String   @id @default(cuid())
   action      String
   entity      String
-  entityId    String
+  entityId    String?
   description String?
   userId      String
+  ipAddress   String?  @map("ipaddress")
+  userAgent   String?  @map("useragent")
   metadata    Json?
+  severity    String   @default("info")
   createdAt   DateTime @default(now())
 
   @@map("tbl_activity_logs")
@@ -423,6 +451,14 @@ model LicenseNotification {
   @@map("tbl_license_notifications")
 }
 
+enum ProjectType {
+  INFRA_NETWORK
+  INFRA_CLOUD_DC
+  MULTIMEDIA_IOT
+  DIGITAL_ELECTRICITY
+  SAAS_BASED
+}
+
 enum ProjectStatus {
   PLANNING
   IN_PROGRESS
@@ -450,7 +486,13 @@ enum Priority {
   LOW
   MEDIUM
   HIGH
-  URGENT
+}
+
+enum TimelineStatus {
+  ON_TIME
+  AT_RISK
+  DELAYED
+  AHEAD
 }
 
 enum ResourceType {
@@ -493,4 +535,71 @@ enum BudgetType {
   PROJECT
   TASK
   GENERAL
+}
+
+model SecuritySettings {
+  id                    String   @id @default(cuid())
+  
+  // Password Policy
+  passwordMinLength     Int      @default(8)
+  passwordRequireUpper  Boolean  @default(true)
+  passwordRequireLower  Boolean  @default(true)
+  passwordRequireNumber Boolean  @default(true)
+  passwordRequireSpecial Boolean @default(true)
+  passwordExpiryDays    Int      @default(90)
+  
+  // Session Settings
+  sessionTimeoutMinutes Int      @default(30)
+  maxConcurrentSessions Int      @default(3)
+  requireReauthSensitive Boolean @default(true)
+  
+  // Access Control
+  enableTwoFactor       Boolean  @default(false)
+  enableIpWhitelist     Boolean  @default(false)
+  allowedIps            Json     @default("[]")
+  enableAuditLog        Boolean  @default(true)
+  
+  // Encryption
+  enableDataEncryption  Boolean  @default(true)
+  encryptionAlgorithm   String   @default("AES-256")
+  keyRotationDays      Int      @default(30)
+  
+  // Metadata
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  updatedBy             String?
+  
+  @@map("tbl_security_settings")
+}
+
+model TwoFactorAuth {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  secret      String
+  backupCodes Json     @default("[]")
+  isEnabled   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("tbl_two_factor_auth")
+}
+
+model UserSession {
+  id          String   @id @default(cuid())
+  userId      String
+  sessionId   String   @unique
+  ipAddress   String?
+  userAgent   String?
+  isActive    Boolean  @default(true)
+  lastActivity DateTime @default(now())
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("tbl_user_sessions")
 }

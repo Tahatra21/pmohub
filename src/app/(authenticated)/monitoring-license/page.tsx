@@ -469,11 +469,11 @@ const MonitoringLicensePage: React.FC = () => {
             </div>
             
             <div className="flex gap-2">
-              <Button>
+              <Button onClick={handleAddNew}>
                 <PlusIcon className="w-4 h-4 mr-2" />
                 Tambah Lisensi
               </Button>
-              <Button variant="outline">
+              <Button variant="outline" disabled>
                 <DownloadIcon className="w-4 h-4 mr-2" />
                 Export
               </Button>
@@ -602,11 +602,29 @@ const MonitoringLicensePage: React.FC = () => {
                     </button>
                     
                     {/* Page numbers */}
-                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                      const pageNum = Math.max(1, Math.min(page - 2 + i, totalPages - 4 + i));
-                      return (
+                    {(() => {
+                      const pages: number[] = [];
+                      const showPages = Math.min(5, totalPages);
+                      
+                      // Calculate page range based on current page
+                      let startPage = Math.max(1, page - Math.floor(showPages / 2));
+                      let endPage = Math.min(totalPages, startPage + showPages - 1);
+                      
+                      // Adjust start if we're near the end
+                      if (endPage - startPage + 1 < showPages) {
+                        startPage = Math.max(1, endPage - showPages + 1);
+                      }
+                      
+                      // Generate unique page numbers
+                      for (let i = startPage; i <= endPage; i++) {
+                        if (!pages.includes(i)) {
+                          pages.push(i);
+                        }
+                      }
+                      
+                      return pages.map((pageNum) => (
                         <button
-                          key={`page-${i}-${pageNum}`}
+                          key={pageNum}
                           onClick={() => handlePageChange(pageNum)}
                           className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
                             pageNum === page
@@ -616,8 +634,8 @@ const MonitoringLicensePage: React.FC = () => {
                         >
                           {pageNum}
                         </button>
-                      );
-                    })}
+                      ));
+                    })()}
                     
                     <button
                       onClick={() => handlePageChange(Math.min(page + 1, totalPages))}

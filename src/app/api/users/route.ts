@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyToken, hasPermission } from '@/lib/auth';
+import { logDataChange, logCrudOperation } from '@/lib/audit-middleware';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 
@@ -156,15 +157,13 @@ export async function POST(request: NextRequest) {
     // Remove password from response
     const { password, ...userWithoutPassword } = newUser;
 
-    // Log activity
-    await db.activityLog.create({
-      data: {
-        action: 'CREATE',
-        entity: 'User',
-        entityId: newUser.id,
-        description: `Created user: ${newUser.name}`,
-        userId: user.id,
-      },
+    // Log detailed activity with audit trail
+    await logDataChange(request, 'CREATE', 'User', newUser.id, user.id, undefined, {
+      name: newUser.name,
+      email: newUser.email,
+      roleId: newUser.roleId,
+      isActive: newUser.isActive,
+      phone: newUser.phone,
     });
 
     return NextResponse.json({
@@ -245,15 +244,19 @@ export async function PUT(request: NextRequest) {
     // Remove password from response
     const { password: _, ...userWithoutPassword } = updatedUser;
 
-    // Log activity
-    await db.activityLog.create({
-      data: {
-        action: 'UPDATE',
-        entity: 'User',
-        entityId: updatedUser.id,
-        description: `Updated user: ${updatedUser.name}`,
-        userId: user.id,
-      },
+    // Log detailed activity with audit trail
+    await logDataChange(request, 'UPDATE', 'User', updatedUser.id, user.id, {
+      name: existingUser.name,
+      email: existingUser.email,
+      roleId: existingUser.roleId,
+      isActive: existingUser.isActive,
+      phone: existingUser.phone,
+    }, {
+      name: updatedUser.name,
+      email: updatedUser.email,
+      roleId: updatedUser.roleId,
+      isActive: updatedUser.isActive,
+      phone: updatedUser.phone,
     });
 
     return NextResponse.json({
@@ -316,26 +319,37 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Get user name before deletion for logging
+    // Get user data before deletion for logging
     const userToDelete = await db.user.findUnique({
       where: { id },
-      select: { name: true },
+      select: { 
+        name: true,
+        email: true,
+        roleId: true,
+        isActive: true,
+        phone: true,
+      },
     });
+
+    if (!userToDelete) {
+      return NextResponse.json(
+        { success: false, error: 'User not found' },
+        { status: 404 }
+      );
+    }
 
     await db.user.delete({
       where: { id },
     });
 
-    // Log activity
-    await db.activityLog.create({
-      data: {
-        action: 'DELETE',
-        entity: 'User',
-        entityId: id,
-        description: `Deleted user: ${userToDelete?.name || 'Unknown'}`,
-        userId: user.id,
-      },
-    });
+    // Log detailed activity with audit trail
+    await logDataChange(request, 'DELETE', 'User', id, user.id, {
+      name: userToDelete.name,
+      email: userToDelete.email,
+      roleId: userToDelete.roleId,
+      isActive: userToDelete.isActive,
+      phone: userToDelete.phone,
+    }, undefined);
 
     return NextResponse.json({
       success: true,

@@ -66,12 +66,14 @@ const LicenseForm: React.FC<LicenseFormProps> = ({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isManualSellingPrice, setIsManualSellingPrice] = useState(false);
 
   // Reset form when modal opens/closes or editData changes
   useEffect(() => {
     if (isOpen) {
       if (editData) {
         setFormData(editData);
+        setIsManualSellingPrice(true); // Preserve manual edits when editing
       } else {
         setFormData({
           nama_aplikasi: "",
@@ -94,6 +96,7 @@ const LicenseForm: React.FC<LicenseFormProps> = ({
           total_purchase_price: 0,
           total_selling_price: 0,
         });
+        setIsManualSellingPrice(false); // Allow auto-calculation for new entries
       }
       setErrors({});
     }
@@ -118,6 +121,18 @@ const LicenseForm: React.FC<LicenseFormProps> = ({
     }));
   }, [formData.jumlah, formData.harga_satuan, formData.selling_price]);
 
+  // Auto calculate Selling Price when Harga Total changes (unless manually edited)
+  useEffect(() => {
+    if (!isManualSellingPrice && formData.harga_total > 0) {
+      // Calculate 13.93% of harga_total
+      const calculatedSellingPrice = formData.harga_total * 0.1393;
+      setFormData(prev => ({ 
+        ...prev, 
+        selling_price: Math.round(calculatedSellingPrice)
+      }));
+    }
+  }, [formData.harga_total, isManualSellingPrice]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     
@@ -125,6 +140,11 @@ const LicenseForm: React.FC<LicenseFormProps> = ({
       ...prev,
       [name]: type === 'number' ? parseFloat(value) || 0 : value
     }));
+
+    // Mark Selling Price as manually edited when user changes it
+    if (name === 'selling_price') {
+      setIsManualSellingPrice(true);
+    }
 
     // Clear error when user starts typing
     if (errors[name]) {
@@ -355,7 +375,10 @@ const LicenseForm: React.FC<LicenseFormProps> = ({
             {/* Selling Price */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Selling Price
+                Selling Price 
+                <span className="text-xs text-gray-500 ml-2">
+                  (Auto: 13.93% dari Harga Total)
+                </span>
               </label>
               <input
                 type="number"
@@ -367,6 +390,9 @@ const LicenseForm: React.FC<LicenseFormProps> = ({
                 min="0"
                 step="0.01"
               />
+              <p className="text-xs text-gray-500 mt-1">
+                {isManualSellingPrice ? 'Manual input' : 'Auto-calculated'}
+              </p>
             </div>
 
             {/* Start Date */}

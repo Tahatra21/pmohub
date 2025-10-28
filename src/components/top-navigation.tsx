@@ -41,6 +41,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import NotificationBell from './notification-bell';
+import { hasPermission, getRolePermissions } from '@/lib/permissions';
 
 interface User {
   id: string;
@@ -168,63 +169,51 @@ export default function TopNavigation() {
   const router = useRouter();
 
   useEffect(() => {
-    const loadUser = () => {
+    const loadUser = async () => {
       try {
         const token = localStorage.getItem('auth_token');
         console.log('Loading user, token exists:', !!token);
         
-        // For now, create a mock user to ensure navigation works
-        // TODO: Implement proper user loading later
-        const mockUser = {
-          id: 'mock-user-id',
-          email: 'admin@projecthub.com',
-          name: 'System Administrator',
-          role: {
-            name: 'System Admin',
-            permissions: {}
-          }
-        };
-        
-        console.log('Setting mock user:', mockUser);
-        setUser(mockUser);
-        setUserLoaded(true);
-        return;
-        
-        // Original user loading logic (commented out for debugging)
-        /*
         if (!token) {
           console.log('No token found, redirecting to login');
           router.push('/login');
           return;
         }
 
-        // Verify token is valid (not expired)
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        const currentTime = Math.floor(Date.now() / 1000);
-        
-        console.log('Token payload:', payload);
-        console.log('Token expires at:', payload.exp);
-        console.log('Current time:', currentTime);
-        
-        if (payload.exp < currentTime) {
-          console.log('Token expired, redirecting to login');
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('user_info');
-          router.push('/login');
-          return;
-        }
+        // Load real user data
+        const response = await fetch('/api/users/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
 
-        // Set user from token payload
-        console.log('Setting user:', payload);
-        setUser(payload);
-        */
+        if (response.ok) {
+          const userData = await response.json();
+          const userInfo = userData.data;
+          
+          // Get role permissions
+          const rolePermissions = getRolePermissions(userInfo.role.name);
+          
+          const userWithPermissions = {
+            id: userInfo.id,
+            email: userInfo.email,
+            name: userInfo.name,
+            role: {
+              name: userInfo.role.name,
+              permissions: rolePermissions
+            }
+          };
+          
+          console.log('Setting real user with permissions:', userWithPermissions);
+          setUser(userWithPermissions);
+        } else {
+          console.log('Failed to load user, redirecting to login');
+          router.push('/login');
+        }
       } catch (error) {
         console.error('Error loading user:', error);
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user_info');
         router.push('/login');
       } finally {
-        console.log('User loading completed');
         setUserLoaded(true);
       }
     };
@@ -232,41 +221,9 @@ export default function TopNavigation() {
     loadUser();
   }, [router]);
 
-  const hasPermission = (permission: string): boolean => {
+  const checkPermission = (permission: string): boolean => {
     if (!user) return false;
-    
-    // For now, allow all permissions to ensure menus are visible
-    // TODO: Implement proper permission system later
-    console.log('Permission check bypassed for:', permission, 'user:', user.role.name);
-    return true;
-    
-    // Original permission logic (commented out for debugging)
-    /*
-    console.log('Checking permission:', permission, 'for user:', user.role.name);
-    console.log('User permissions:', user.role.permissions);
-    
-    // Check if user has the permission
-    if (user.role.permissions?.[permission] === true) {
-      console.log('Permission granted:', permission);
-      return true;
-    }
-    
-    // Check if user has the :all permission for this resource
-    const resource = permission.split(':')[0];
-    if (user.role.permissions?.[`${resource}:all`] === true) {
-      console.log('Permission granted via :all:', `${resource}:all`);
-      return true;
-    }
-    
-    // Admin has all permissions
-    if (user.role.name === 'Admin' || user.role.name === 'System Admin') {
-      console.log('Permission granted via Admin role');
-      return true;
-    }
-    
-    console.log('Permission denied:', permission);
-    return false;
-    */
+    return hasPermission(user.role.permissions, permission);
   };
 
   const handleLogout = () => {
@@ -370,7 +327,7 @@ export default function TopNavigation() {
   const filteredNavigationItems = navigationItems.filter(item => {
     console.log('Filtering navigation item:', item.name, 'permission:', item.permission);
     
-    if (!item.permission || hasPermission(item.permission)) {
+    if (!item.permission || checkPermission(item.permission)) {
       console.log('Item included:', item.name);
       return true;
     }
@@ -378,7 +335,7 @@ export default function TopNavigation() {
     // If parent doesn't have permission, check if any child has permission
     if (item.children) {
       const hasChildPermission = item.children.some(child => 
-        !child.permission || hasPermission(child.permission)
+        !child.permission || checkPermission(child.permission)
       );
       console.log('Item included via children:', item.name, hasChildPermission);
       return hasChildPermission;
@@ -481,7 +438,7 @@ export default function TopNavigation() {
                           {item.children!.map((child) => {
                             const ChildIcon = child.icon;
                             const isChildActive = pathname === child.href || pathname.startsWith(child.href + '/');
-                            const hasChildPermission = !child.permission || hasPermission(child.permission);
+                            const hasChildPermission = !child.permission || checkPermission(child.permission);
                             
                             if (!hasChildPermission) return null;
                             
@@ -510,7 +467,7 @@ export default function TopNavigation() {
                                       {child.children!.map((grandChild) => {
                                         const GrandChildIcon = grandChild.icon;
                                         const isGrandChildActive = pathname === grandChild.href || pathname.startsWith(grandChild.href + '/');
-                                        const hasGrandChildPermission = !grandChild.permission || hasPermission(grandChild.permission);
+                                        const hasGrandChildPermission = !grandChild.permission || checkPermission(grandChild.permission);
                                         
                                         if (!hasGrandChildPermission) return null;
                                         
@@ -587,7 +544,7 @@ export default function TopNavigation() {
             {/* Right side - Notifications and User Menu */}
             <div className="flex items-center space-x-6">
               {/* Notifications */}
-              {hasPermission('notifications:read') && (
+              {checkPermission('notifications:read') && (
                 <NotificationBell />
               )}
 
@@ -675,7 +632,7 @@ export default function TopNavigation() {
                                   {item.children!.map((child) => {
                                     const ChildIcon = child.icon;
                                     const isChildActive = pathname === child.href || pathname.startsWith(child.href + '/');
-                                    const hasChildPermission = !child.permission || hasPermission(child.permission);
+                                    const hasChildPermission = !child.permission || checkPermission(child.permission);
                                     
                                     if (!hasChildPermission) return null;
                                     
@@ -708,7 +665,7 @@ export default function TopNavigation() {
                                               {child.children!.map((grandChild) => {
                                                 const GrandChildIcon = grandChild.icon;
                                                 const isGrandChildActive = pathname === grandChild.href || pathname.startsWith(grandChild.href + '/');
-                                                const hasGrandChildPermission = !grandChild.permission || hasPermission(grandChild.permission);
+                                                const hasGrandChildPermission = !grandChild.permission || checkPermission(grandChild.permission);
                                                 
                                                 if (!hasGrandChildPermission) return null;
                                                 

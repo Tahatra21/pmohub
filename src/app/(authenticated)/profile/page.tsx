@@ -11,7 +11,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { User, Mail, Phone, Shield, Calendar, Save, Edit3, Briefcase, MapPin, DollarSign, Users, Clock } from 'lucide-react';
+import { User, Mail, Phone, Shield, Calendar, Save, Edit3, Briefcase, MapPin, DollarSign, Users, Clock, Key } from 'lucide-react';
+import ChangePasswordModal from '@/components/auth/ChangePasswordModal';
 
 interface UserProfile {
   id: string;
@@ -50,6 +51,7 @@ export default function ProfilePage() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -239,14 +241,24 @@ export default function ProfilePage() {
                 <div className="flex items-center justify-between">
                   <CardTitle>Profile Information</CardTitle>
                   {!isEditing && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setIsEditing(true)}
-                    >
-                      <Edit3 className="h-4 w-4 mr-2" />
-                      Edit Profile
-                    </Button>
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowChangePassword(true)}
+                      >
+                        <Key className="h-4 w-4 mr-2" />
+                        Change Password
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsEditing(true)}
+                      >
+                        <Edit3 className="h-4 w-4 mr-2" />
+                        Edit Profile
+                      </Button>
+                    </div>
                   )}
                 </div>
               </CardHeader>
@@ -462,6 +474,12 @@ export default function ProfilePage() {
             )}
           </div>
         </div>
+
+        {/* Change Password Modal */}
+        <ChangePasswordModal
+          isOpen={showChangePassword}
+          onClose={() => setShowChangePassword(false)}
+        />
       </div>
     </div>
   );

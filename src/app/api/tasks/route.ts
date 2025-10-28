@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyToken, hasPermission } from '@/lib/auth';
 import { z } from 'zod';
+import { calculateTimelineStatus } from '@/lib/timeline-utils';
 
 const taskSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -112,16 +113,36 @@ export async function GET(request: NextRequest) {
       db.task.count({ where }),
     ]);
 
+    // Calculate timeline status for each task
+    const tasksWithTimeline = tasks.map(task => {
+      const timeline = calculateTimelineStatus(
+        task.startDate,
+        task.endDate,
+        task.status,
+        task.warningThreshold || 3,
+        task.progress
+      );
+      
+      return {
+        ...task,
+        ...timeline,
+        // Update timeline status in database if changed
+        timelineStatus: timeline.timelineStatus,
+        riskLevel: timeline.riskLevel,
+        delayDays: timeline.delayDays,
+        daysRemaining: timeline.daysRemaining,
+        progressPercentage: timeline.progressPercentage
+      };
+    });
+
     return NextResponse.json({
       success: true,
-      data: {
-        tasks,
-        pagination: {
-          page,
-          limit,
-          total,
-          pages: Math.ceil(total / limit),
-        },
+      data: tasksWithTimeline,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
       },
     });
   } catch (error) {

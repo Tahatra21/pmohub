@@ -16,12 +16,13 @@ export default function AuthenticatedLayout({
     const token = localStorage.getItem('auth_token');
     console.log('AuthenticatedLayout: Loading user, token exists:', !!token);
     
-    // For now, bypass token validation to ensure access
-    // TODO: Implement proper token validation later
-    console.log('AuthenticatedLayout: Bypassing token validation for debugging');
-    setIsLoading(false);
-    return;
+    if (!token || token === 'undefined' || token === 'null') {
+      console.log('AuthenticatedLayout: No valid token found, redirecting to login');
+      router.push('/login');
+      return;
+    }
     
+    setIsLoading(false);
   }, [router]);
 
   if (isLoading) {
