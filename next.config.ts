@@ -53,7 +53,7 @@ const nextConfig: NextConfig = {
               test: /[\\/]node_modules[\\/]/,
               name: 'vendors',
               chunks: 'all',
-              priority: 10,
+              priority: 5,
             },
             common: {
               name: 'common',
