@@ -70,53 +70,92 @@ firewall-cmd --reload || true
 systemctl enable --now nginx
 
 log "Step 5: Initialize and start PostgreSQL 16"
-# PostgreSQL 16 uses /usr/pgsql-16/bin/postgresql-16-setup
-if [ ! -d "/var/lib/pgsql/16/data/base" ] && [ ! -d "/var/lib/pgsql/data/base" ]; then
+# Ensure postgres user exists
+id postgres >/dev/null 2>&1 || useradd -r -s /bin/bash -d /var/lib/pgsql postgres
+
+# Determine PostgreSQL data directory
+PG_DATA_DIR="/var/lib/pgsql/16/data"
+if [ ! -d "$PG_DATA_DIR" ]; then
+  PG_DATA_DIR="/var/lib/pgsql/data"
+  mkdir -p "$PG_DATA_DIR" 2>/dev/null || true
+fi
+
+# Initialize PostgreSQL if data directory is empty
+if [ ! -d "$PG_DATA_DIR/base" ] && [ -z "$(ls -A $PG_DATA_DIR 2>/dev/null)" ]; then
+  log "Initializing PostgreSQL database cluster..."
+  # Try different initialization methods
   if command -v postgresql-16-setup >/dev/null 2>&1; then
-    /usr/pgsql-16/bin/postgresql-16-setup --initdb || postgresql-16-setup --initdb
-  else
-    sudo -u postgres /usr/pgsql-16/bin/initdb -D /var/lib/pgsql/16/data || sudo -u postgres /usr/pgsql-16/bin/initdb -D /var/lib/pgsql/data
+    /usr/pgsql-16/bin/postgresql-16-setup --initdb || \
+    postgresql-16-setup --initdb || true
+  elif [ -f /usr/pgsql-16/bin/initdb ]; then
+    mkdir -p "$PG_DATA_DIR"
+    chown postgres:postgres "$PG_DATA_DIR"
+    sudo -u postgres /usr/pgsql-16/bin/initdb -D "$PG_DATA_DIR" || true
+  elif [ -f /usr/bin/postgresql-setup ]; then
+    sudo -u postgres /usr/bin/postgresql-setup --initdb || true
   fi
 fi
-systemctl enable --now postgresql-16 || systemctl enable --now postgresql
+
+# Ensure correct ownership
+chown -R postgres:postgres "$PG_DATA_DIR" 2>/dev/null || true
+
+# Update PGDATA in service file if needed
+if [ -f /usr/lib/systemd/system/postgresql-16.service ]; then
+  sed -i "s|^Environment=PGDATA=.*|Environment=PGDATA=$PG_DATA_DIR|" /usr/lib/systemd/system/postgresql-16.service || true
+fi
+
+# Enable and start PostgreSQL
+systemctl daemon-reload
+systemctl enable postgresql-16 || systemctl enable postgresql || true
+
+# Start PostgreSQL and wait for it to be ready
+log "Starting PostgreSQL service..."
+systemctl start postgresql-16 || systemctl start postgresql || true
+sleep 3
+
+# Verify PostgreSQL is running
+for i in {1..10}; do
+  if sudo -u postgres psql -c "SELECT 1;" postgres >/dev/null 2>&1; then
+    log "PostgreSQL is running"
+    break
+  else
+    warn "Waiting for PostgreSQL to start... ($i/10)"
+    sleep 2
+    systemctl start postgresql-16 || systemctl start postgresql || true
+  fi
+done
 
 log "Step 6: Create database and user"
-sudo -u postgres psql <<SQL
-DO
-$$
-BEGIN
-   IF NOT EXISTS (
-      SELECT FROM pg_catalog.pg_roles WHERE rolname = '${DB_USER}') THEN
-      CREATE ROLE ${DB_USER} LOGIN PASSWORD '${DB_PASS}';
-   END IF;
-END
-$$;
+# Use single quotes in heredoc to prevent variable expansion issues, then pass variables safely
+sudo -u postgres psql -c "CREATE ROLE ${DB_USER} WITH LOGIN PASSWORD '${DB_PASS}';" 2>/dev/null || \
+sudo -u postgres psql -c "ALTER ROLE ${DB_USER} WITH PASSWORD '${DB_PASS}';" || true
 
-DO
-$$
-BEGIN
-   IF NOT EXISTS (
-      SELECT FROM pg_database WHERE datname = '${DB_NAME}') THEN
-      CREATE DATABASE ${DB_NAME};
-   END IF;
-END
-$$;
+sudo -u postgres psql -c "CREATE DATABASE ${DB_NAME};" 2>/dev/null || \
+sudo -u postgres psql -c "CREATE DATABASE ${DB_NAME} OWNER ${DB_USER};" 2>/dev/null || true
 
-GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};
-SQL
+sudo -u postgres psql -d ${DB_NAME} -c "GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};" || true
+sudo -u postgres psql -d ${DB_NAME} -c "GRANT ALL ON SCHEMA public TO ${DB_USER};" || true
 
 log "Step 7: Allow local connections (pg_hba.conf)"
-# PostgreSQL 16 default path
-PG_HBA="/var/lib/pgsql/16/data/pg_hba.conf"
+# Use the determined PG_DATA_DIR
+PG_HBA="$PG_DATA_DIR/pg_hba.conf"
 if [ ! -f "$PG_HBA" ]; then
-  # Fallback to traditional path
-  PG_HBA="/var/lib/pgsql/data/pg_hba.conf"
+  warn "pg_hba.conf not found at $PG_HBA, trying alternative locations..."
+  PG_HBA="/var/lib/pgsql/16/data/pg_hba.conf"
+  [ ! -f "$PG_HBA" ] && PG_HBA="/var/lib/pgsql/data/pg_hba.conf"
 fi
-cp -n "$PG_HBA" "${PG_HBA}.bak" 2>/dev/null || true
-if ! grep -q "127.0.0.1/32" "$PG_HBA" 2>/dev/null; then
-  echo "host    all             all             127.0.0.1/32            scram-sha-256" >> "$PG_HBA"
+
+if [ -f "$PG_HBA" ]; then
+  cp -n "$PG_HBA" "${PG_HBA}.bak" 2>/dev/null || true
+  if ! grep -q "127.0.0.1/32" "$PG_HBA" 2>/dev/null; then
+    echo "host    all             all             127.0.0.1/32            scram-sha-256" >> "$PG_HBA"
+    chown postgres:postgres "$PG_HBA"
+    systemctl restart postgresql-16 || systemctl restart postgresql || true
+    sleep 2
+  fi
+else
+  warn "Could not find pg_hba.conf. Please configure PostgreSQL authentication manually."
 fi
-systemctl restart postgresql-16 || systemctl restart postgresql
 
 log "Step 8: Clone or update application repo"
 mkdir -p /var/www
