@@ -45,28 +45,42 @@ if ! dnf list installed epel-release >/dev/null 2>&1; then
   dnf install -y epel-release
 fi
 
-log "Step 2: Install dependencies (curl, git, firewalld, nginx, PostgreSQL, Node.js)"
-dnf install -y curl wget git firewalld nginx postgresql15-server postgresql15
+log "Step 2: Add PostgreSQL 16 official repository"
+# Install PostgreSQL 16 repository
+dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-$(rpm -E %{rhel})-x86_64/pgdg-redhat-repo-latest.noarch.rpm || \
+dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm || \
+dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-8-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+
+# Disable default PostgreSQL module if exists
+dnf module disable -y postgresql || true
+
+log "Step 3: Install dependencies (curl, git, firewalld, nginx, PostgreSQL 16, Node.js)"
+dnf install -y curl wget git firewalld nginx postgresql16-server postgresql16
 if ! command -v node >/dev/null 2>&1; then
   curl -fsSL https://rpm.nodesource.com/setup_18.x | bash -
   dnf install -y nodejs
 fi
 npm -v >/dev/null || (err "npm not found" && exit 1)
 
-log "Step 3: Start and enable firewall & nginx"
+log "Step 4: Start and enable firewall & nginx"
 systemctl enable --now firewalld
 firewall-cmd --permanent --add-service=http || true
 firewall-cmd --permanent --add-service=https || true
 firewall-cmd --reload || true
 systemctl enable --now nginx
 
-log "Step 4: Initialize and start PostgreSQL"
-if [ ! -d "/var/lib/pgsql/data/base" ]; then
-  postgresql-setup --initdb
+log "Step 5: Initialize and start PostgreSQL 16"
+# PostgreSQL 16 uses /usr/pgsql-16/bin/postgresql-16-setup
+if [ ! -d "/var/lib/pgsql/16/data/base" ] && [ ! -d "/var/lib/pgsql/data/base" ]; then
+  if command -v postgresql-16-setup >/dev/null 2>&1; then
+    /usr/pgsql-16/bin/postgresql-16-setup --initdb || postgresql-16-setup --initdb
+  else
+    sudo -u postgres /usr/pgsql-16/bin/initdb -D /var/lib/pgsql/16/data || sudo -u postgres /usr/pgsql-16/bin/initdb -D /var/lib/pgsql/data
+  fi
 fi
-systemctl enable --now postgresql
+systemctl enable --now postgresql-16 || systemctl enable --now postgresql
 
-log "Step 5: Create database and user"
+log "Step 6: Create database and user"
 sudo -u postgres psql <<SQL
 DO
 $$
@@ -91,15 +105,20 @@ $$;
 GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};
 SQL
 
-log "Step 6: Allow local connections (pg_hba.conf)"
-PG_HBA="/var/lib/pgsql/data/pg_hba.conf"
-cp -n "$PG_HBA" "${PG_HBA}.bak" || true
-if ! grep -q "127.0.0.1/32" "$PG_HBA"; then
+log "Step 7: Allow local connections (pg_hba.conf)"
+# PostgreSQL 16 default path
+PG_HBA="/var/lib/pgsql/16/data/pg_hba.conf"
+if [ ! -f "$PG_HBA" ]; then
+  # Fallback to traditional path
+  PG_HBA="/var/lib/pgsql/data/pg_hba.conf"
+fi
+cp -n "$PG_HBA" "${PG_HBA}.bak" 2>/dev/null || true
+if ! grep -q "127.0.0.1/32" "$PG_HBA" 2>/dev/null; then
   echo "host    all             all             127.0.0.1/32            scram-sha-256" >> "$PG_HBA"
 fi
-systemctl restart postgresql
+systemctl restart postgresql-16 || systemctl restart postgresql
 
-log "Step 7: Clone or update application repo"
+log "Step 8: Clone or update application repo"
 mkdir -p /var/www
 if [ -d "$APP_DIR/.git" ]; then
   cd "$APP_DIR"
@@ -110,10 +129,10 @@ else
   cd "$APP_DIR"
 fi
 
-log "Step 8: Install app dependencies"
+log "Step 9: Install app dependencies"
 npm install
 
-log "Step 9: Configure environment (.env)"
+log "Step 10: Configure environment (.env)"
 if [ ! -f .env ]; then
   cp .env.example .env || true
 fi
@@ -142,7 +161,7 @@ if ! grep -q '^JWT_SECRET=' .env; then
   echo "JWT_SECRET=\"$(openssl rand -base64 32)\"" >> .env
 fi
 
-log "Step 10: Prepare database with Prisma (migrate + seed)"
+log "Step 11: Prepare database with Prisma (migrate + seed)"
 npm run db:generate
 npx prisma migrate deploy
 # Seed to ensure users/password and initial data match repo state
@@ -152,10 +171,10 @@ npm run db:seed
 # npm run hjt:setup-tables
 # npm run cost-estimator:setup
 
-log "Step 11: Build application"
+log "Step 12: Build application"
 npm run build
 
-log "Step 12: Configure PM2"
+log "Step 13: Configure PM2"
 if ! command -v pm2 >/dev/null 2>&1; then
   npm install -g pm2
 fi
@@ -186,7 +205,7 @@ pm2 start ecosystem.config.js || pm2 restart pmo-app || true
 pm2 save
 pm2 startup systemd -u $(whoami) --hp $(eval echo ~$(whoami)) >/dev/null 2>&1 || true
 
-log "Step 13: Configure Nginx reverse proxy"
+log "Step 14: Configure Nginx reverse proxy"
 cat > /etc/nginx/conf.d/pmohub.conf <<EOF
 server {
     listen 80;
@@ -226,7 +245,7 @@ server {
 EOF
 nginx -t && systemctl restart nginx
 
-log "Step 14: SELinux adjustments (if Enforcing)"
+log "Step 15: SELinux adjustments (if Enforcing)"
 if command -v getenforce >/dev/null 2>&1 && [ "$(getenforce)" = "Enforcing" ]; then
   setsebool -P httpd_can_network_connect 1 || true
   if ! dnf list installed | grep -q policycoreutils-python-utils; then
@@ -234,7 +253,7 @@ if command -v getenforce >/dev/null 2>&1 && [ "$(getenforce)" = "Enforcing" ]; t
   fi
 fi
 
-log "Step 15: Final checks"
+log "Step 16: Final checks"
 sleep 3
 if curl -sS http://localhost:${PORT} >/dev/null; then
   log "Application is responding on localhost:${PORT}"
